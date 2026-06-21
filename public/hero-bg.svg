@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="340" viewBox="0 0 1440 340" fill="none">
+  <defs>
+    <linearGradient id="sky" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0C3A52"/>
+      <stop offset="40%" stop-color="#1D91CC"/>
+      <stop offset="100%" stop-color="#77BDE0"/>
+    </linearGradient>
+    <linearGradient id="overlay" x1="100%" y1="0%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#1C6FB9" stop-opacity="0.95"/>
+      <stop offset="55%" stop-color="#1C6FB9" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#1C6FB9" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1440" height="340" fill="url(#sky)"/>
+  <ellipse cx="200" cy="380" rx="320" ry="120" fill="#FFFFFF" fill-opacity="0.08"/>
+  <ellipse cx="1100" cy="60" rx="180" ry="60" fill="#FFFFFF" fill-opacity="0.12"/>
+  <path d="M0 220 C200 180 400 260 600 210 C800 160 1000 240 1200 200 C1320 175 1380 190 1440 185 L1440 340 L0 340 Z" fill="#FFFFFF" fill-opacity="0.06"/>
+  <g transform="translate(900 80) rotate(-8)">
+    <path d="M0 80 L420 60 L480 75 L420 90 L0 110 Z" fill="#FFFFFF" fill-opacity="0.18"/>
+    <path d="M60 70 L200 62 L210 78 L60 86 Z" fill="#E8F4FA" fill-opacity="0.35"/>
+    <path d="M300 58 L460 50 L470 68 L300 76 Z" fill="#FFFFFF" fill-opacity="0.25"/>
+    <circle cx="470" cy="59" r="8" fill="#FFFFFF" fill-opacity="0.5"/>
+  </g>
+  <rect width="1440" height="340" fill="url(#overlay)"/>
+</svg>

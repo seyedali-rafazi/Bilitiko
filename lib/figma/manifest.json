@@ -1,0 +1,962 @@
+{
+  "fileKey": "kc38jU4OXVtQq7VSdmaNjE",
+  "fileName": "✈️ Bilito - flight booking website (Community)",
+  "lastModified": "2026-06-18T12:15:48Z",
+  "pages": [
+    {
+      "id": "533:2",
+      "name": "✨ Welcome"
+    },
+    {
+      "id": "3987:84284",
+      "name": "📢About this project"
+    },
+    {
+      "id": "3981:84283",
+      "name": "🎨Designers"
+    },
+    {
+      "id": "917:2572",
+      "name": "✅Ui page"
+    },
+    {
+      "id": "57:3",
+      "name": "📐Wireframe"
+    },
+    {
+      "id": "3987:84285",
+      "name": "-------------------"
+    },
+    {
+      "id": "57:2",
+      "name": "🔨Style Guide"
+    },
+    {
+      "id": "229:17037",
+      "name": "📕Component"
+    },
+    {
+      "id": "220:698",
+      "name": "📍icons"
+    }
+  ],
+  "uiPageId": "917:2572",
+  "screenCount": 112,
+  "screens": [
+    {
+      "name": "Home page",
+      "id": "2744:70370",
+      "width": 1440,
+      "height": 3015,
+      "platform": "desktop"
+    },
+    {
+      "name": "Login/Step 1",
+      "id": "2012:21351",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "Login/Step 2",
+      "id": "2012:21352",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "Login/Step 3",
+      "id": "2012:21731",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "Login/Step 4",
+      "id": "2012:28386",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "Limited results",
+      "id": "2068:20456",
+      "width": 1440,
+      "height": 972,
+      "platform": "desktop"
+    },
+    {
+      "name": "Scroll",
+      "id": "2068:20465",
+      "width": 1440,
+      "height": 1480,
+      "platform": "desktop"
+    },
+    {
+      "name": "Scroll",
+      "id": "2128:18050",
+      "width": 1440,
+      "height": 1480,
+      "platform": "desktop"
+    },
+    {
+      "name": "sort by",
+      "id": "2068:20476",
+      "width": 1440,
+      "height": 1480,
+      "platform": "desktop"
+    },
+    {
+      "name": "Price calendar",
+      "id": "2068:20487",
+      "width": 1440,
+      "height": 1480,
+      "platform": "desktop"
+    },
+    {
+      "name": "Without result",
+      "id": "2068:20498",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "Profile of people",
+      "id": "2068:20510",
+      "width": 1440,
+      "height": 1573,
+      "platform": "desktop"
+    },
+    {
+      "name": "Ticket confirmation",
+      "id": "2068:20544",
+      "width": 1440,
+      "height": 1438,
+      "platform": "desktop"
+    },
+    {
+      "name": "Successful payment_ with details",
+      "id": "2068:20572",
+      "width": 1440,
+      "height": 1248,
+      "platform": "desktop"
+    },
+    {
+      "name": "Unsuccessful payment",
+      "id": "2068:20661",
+      "width": 1440,
+      "height": 1023,
+      "platform": "desktop"
+    },
+    {
+      "name": "Successful payment",
+      "id": "2068:20671",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "Frame 26087429",
+      "id": "2132:19949",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "Frame 26087430",
+      "id": "2284:19285",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "Frame 26087431",
+      "id": "2284:19426",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "Steps",
+      "id": "2282:19174",
+      "width": 1440,
+      "height": 2318,
+      "platform": "desktop"
+    },
+    {
+      "name": "Desktop - 36",
+      "id": "2282:19206",
+      "width": 1440,
+      "height": 1714,
+      "platform": "desktop"
+    },
+    {
+      "name": "Desktop - 52",
+      "id": "2282:19223",
+      "width": 1440,
+      "height": 2277,
+      "platform": "desktop"
+    },
+    {
+      "name": "Steps",
+      "id": "2327:47070",
+      "width": 1440,
+      "height": 2099,
+      "platform": "desktop"
+    },
+    {
+      "name": "unSuccessful payment",
+      "id": "2744:63917",
+      "width": 1440,
+      "height": 1385,
+      "platform": "desktop"
+    },
+    {
+      "name": "about us",
+      "id": "2327:47102",
+      "width": 1440,
+      "height": 1797,
+      "platform": "desktop"
+    },
+    {
+      "name": "contact us",
+      "id": "2327:47119",
+      "width": 1440,
+      "height": 2378,
+      "platform": "desktop"
+    },
+    {
+      "name": "Scroll",
+      "id": "2744:63723",
+      "width": 1440,
+      "height": 1576,
+      "platform": "desktop"
+    },
+    {
+      "name": "Sorting options",
+      "id": "2744:63743",
+      "width": 1440,
+      "height": 1233,
+      "platform": "desktop"
+    },
+    {
+      "name": "Sorting options",
+      "id": "3342:116726",
+      "width": 1440,
+      "height": 1148,
+      "platform": "desktop"
+    },
+    {
+      "name": "Sorting options",
+      "id": "3342:117708",
+      "width": 1440,
+      "height": 1148,
+      "platform": "desktop"
+    },
+    {
+      "name": "Sorting options",
+      "id": "3342:118275",
+      "width": 1440,
+      "height": 1148,
+      "platform": "desktop"
+    },
+    {
+      "name": "Sorting options",
+      "id": "3342:119152",
+      "width": 1440,
+      "height": 1148,
+      "platform": "desktop"
+    },
+    {
+      "name": "Without result",
+      "id": "2744:63785",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "Profile of people",
+      "id": "2744:63799",
+      "width": 1440,
+      "height": 1757,
+      "platform": "desktop"
+    },
+    {
+      "name": "Login modal",
+      "id": "3342:120334",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "Ticket confirmation",
+      "id": "2744:63877",
+      "width": 1440,
+      "height": 1389,
+      "platform": "desktop"
+    },
+    {
+      "name": "Successful payment",
+      "id": "2744:63905",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "unSuccessful payment",
+      "id": "2744:63911",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "Successful payment",
+      "id": "2744:63926",
+      "width": 1440,
+      "height": 1223,
+      "platform": "desktop"
+    },
+    {
+      "name": "Scroll",
+      "id": "3143:80810",
+      "width": 360,
+      "height": 1386,
+      "platform": "mobile"
+    },
+    {
+      "name": "Sorting options",
+      "id": "3143:80903",
+      "width": 360,
+      "height": 1388,
+      "platform": "mobile"
+    },
+    {
+      "name": "Without result",
+      "id": "3143:80914",
+      "width": 360,
+      "height": 640,
+      "platform": "mobile"
+    },
+    {
+      "name": "Modals",
+      "id": "3143:80923",
+      "width": 360,
+      "height": 640,
+      "platform": "mobile"
+    },
+    {
+      "name": "Profile of people",
+      "id": "3143:80962",
+      "width": 360,
+      "height": 2459,
+      "platform": "mobile"
+    },
+    {
+      "name": "Login modal",
+      "id": "4161:31685",
+      "width": 360,
+      "height": 640,
+      "platform": "mobile"
+    },
+    {
+      "name": "Ticket confirmation",
+      "id": "3143:81039",
+      "width": 360,
+      "height": 1137,
+      "platform": "mobile"
+    },
+    {
+      "name": "Successful payment",
+      "id": "3143:81125",
+      "width": 360,
+      "height": 833,
+      "platform": "mobile"
+    },
+    {
+      "name": "Modals",
+      "id": "3143:81224",
+      "width": 360,
+      "height": 640,
+      "platform": "mobile"
+    },
+    {
+      "name": "Modals",
+      "id": "4093:92369",
+      "width": 360,
+      "height": 640,
+      "platform": "mobile"
+    },
+    {
+      "name": "Modals",
+      "id": "3143:81237",
+      "width": 360,
+      "height": 640,
+      "platform": "mobile"
+    },
+    {
+      "name": "Sorting options",
+      "id": "3143:81244",
+      "width": 360,
+      "height": 1231,
+      "platform": "mobile"
+    },
+    {
+      "name": "Search box, mobile",
+      "id": "3143:81248",
+      "width": 360,
+      "height": 709,
+      "platform": "mobile"
+    },
+    {
+      "name": "Account",
+      "id": "3144:77268",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "My tickets",
+      "id": "3144:77278",
+      "width": 1440,
+      "height": 1090,
+      "platform": "desktop"
+    },
+    {
+      "name": "My tickets",
+      "id": "3144:77288",
+      "width": 1440,
+      "height": 1084,
+      "platform": "desktop"
+    },
+    {
+      "name": "My tickets",
+      "id": "3144:77298",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "my travels",
+      "id": "3144:77338",
+      "width": 1440,
+      "height": 1068,
+      "platform": "desktop"
+    },
+    {
+      "name": "my travels",
+      "id": "3344:128734",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "my travels",
+      "id": "3144:77356",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "my travels",
+      "id": "3344:127718",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "Account",
+      "id": "3144:77394",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "wallet",
+      "id": "3144:77404",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "wallet",
+      "id": "3143:90310",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "wallet",
+      "id": "3344:129249",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "insurance result",
+      "id": "3143:93828",
+      "width": 1440,
+      "height": 1126,
+      "platform": "desktop"
+    },
+    {
+      "name": "insurance homepage",
+      "id": "3143:93943",
+      "width": 1440,
+      "height": 3250,
+      "platform": "desktop"
+    },
+    {
+      "name": "Search box, mobile",
+      "id": "3342:75223",
+      "width": 360,
+      "height": 2458,
+      "platform": "mobile"
+    },
+    {
+      "name": "Account",
+      "id": "3143:108897",
+      "width": 360,
+      "height": 690,
+      "platform": "mobile"
+    },
+    {
+      "name": "Account",
+      "id": "3143:108928",
+      "width": 360,
+      "height": 640,
+      "platform": "mobile"
+    },
+    {
+      "name": "my travels",
+      "id": "3143:108937",
+      "width": 360,
+      "height": 1613,
+      "platform": "mobile"
+    },
+    {
+      "name": "my travels",
+      "id": "3143:108953",
+      "width": 360,
+      "height": 640,
+      "platform": "mobile"
+    },
+    {
+      "name": "My tickets",
+      "id": "3143:109949",
+      "width": 360,
+      "height": 797,
+      "platform": "mobile"
+    },
+    {
+      "name": "My tickets",
+      "id": "3143:109956",
+      "width": 360,
+      "height": 640,
+      "platform": "mobile"
+    },
+    {
+      "name": "wallet",
+      "id": "3143:121461",
+      "width": 360,
+      "height": 640,
+      "platform": "mobile"
+    },
+    {
+      "name": "wallet",
+      "id": "3143:121539",
+      "width": 360,
+      "height": 640,
+      "platform": "mobile"
+    },
+    {
+      "name": "wallet",
+      "id": "3143:121634",
+      "width": 360,
+      "height": 689,
+      "platform": "mobile"
+    },
+    {
+      "name": "hamburger menu_not Logged",
+      "id": "3331:38999",
+      "width": 360,
+      "height": 640,
+      "platform": "mobile"
+    },
+    {
+      "name": "Logged",
+      "id": "3330:45431",
+      "width": 360,
+      "height": 640,
+      "platform": "mobile"
+    },
+    {
+      "name": "Login/Step 1",
+      "id": "3362:83493",
+      "width": 360,
+      "height": 640,
+      "platform": "mobile"
+    },
+    {
+      "name": "Login/Step 2",
+      "id": "3450:36294",
+      "width": 360,
+      "height": 640,
+      "platform": "mobile"
+    },
+    {
+      "name": "Login/Step 3",
+      "id": "3452:36548",
+      "width": 360,
+      "height": 640,
+      "platform": "mobile"
+    },
+    {
+      "name": "Login/Step 4",
+      "id": "3453:36826",
+      "width": 360,
+      "height": 640,
+      "platform": "mobile"
+    },
+    {
+      "name": "steps",
+      "id": "3512:81740",
+      "width": 360,
+      "height": 1307,
+      "platform": "mobile"
+    },
+    {
+      "name": "insurance homepage",
+      "id": "3510:84570",
+      "width": 360,
+      "height": 2871,
+      "platform": "mobile"
+    },
+    {
+      "name": "insurance result mobile",
+      "id": "3510:84641",
+      "width": 360,
+      "height": 800,
+      "platform": "mobile"
+    },
+    {
+      "name": "insurance modal mobile",
+      "id": "3510:84658",
+      "width": 360,
+      "height": 640,
+      "platform": "mobile"
+    },
+    {
+      "name": "insurance modal mobile2",
+      "id": "3510:84922",
+      "width": 360,
+      "height": 640,
+      "platform": "mobile"
+    },
+    {
+      "name": "insurance modal mobile3",
+      "id": "3510:84942",
+      "width": 360,
+      "height": 640,
+      "platform": "mobile"
+    },
+    {
+      "name": "about us",
+      "id": "4097:86174",
+      "width": 360,
+      "height": 1210,
+      "platform": "mobile"
+    },
+    {
+      "name": "contact us",
+      "id": "4097:86189",
+      "width": 360,
+      "height": 1822,
+      "platform": "mobile"
+    },
+    {
+      "name": "insurance modal",
+      "id": "4093:94218",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "insurance modal",
+      "id": "4093:94219",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "insurance modal",
+      "id": "4093:94338",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "unSuccessful payment",
+      "id": "4099:103366",
+      "width": 360,
+      "height": 958,
+      "platform": "mobile"
+    },
+    {
+      "name": "Insurance Profile of people",
+      "id": "4158:40813",
+      "width": 1440,
+      "height": 1471,
+      "platform": "desktop"
+    },
+    {
+      "name": "Insurance Profile of people",
+      "id": "4158:40848",
+      "width": 360,
+      "height": 1985,
+      "platform": "mobile"
+    },
+    {
+      "name": "Insurance information",
+      "id": "4158:41584",
+      "width": 1440,
+      "height": 1347,
+      "platform": "desktop"
+    },
+    {
+      "name": "Insurance information",
+      "id": "4158:41608",
+      "width": 360,
+      "height": 934,
+      "platform": "mobile"
+    },
+    {
+      "name": "Insurance successful payment no detail",
+      "id": "4158:42081",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "Insurance successful payment detail",
+      "id": "4158:42087",
+      "width": 1440,
+      "height": 1077,
+      "platform": "desktop"
+    },
+    {
+      "name": "Insurance successful mobile",
+      "id": "4158:42093",
+      "width": 360,
+      "height": 932,
+      "platform": "mobile"
+    },
+    {
+      "name": "Insurance unsuccessful payment no detail",
+      "id": "4158:42869",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "Insurance unsuccessful payment detail",
+      "id": "4158:42875",
+      "width": 1440,
+      "height": 1211,
+      "platform": "desktop"
+    },
+    {
+      "name": "Insurance unsuccessful mobile",
+      "id": "4158:42884",
+      "width": 360,
+      "height": 1047,
+      "platform": "mobile"
+    },
+    {
+      "name": "405",
+      "id": "4158:43638",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "404",
+      "id": "4158:43641",
+      "width": 360,
+      "height": 640,
+      "platform": "mobile"
+    },
+    {
+      "name": "Toltib",
+      "id": "4158:43859",
+      "width": 1440,
+      "height": 1544,
+      "platform": "desktop"
+    },
+    {
+      "name": "Modal",
+      "id": "4158:43871",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "Toltib",
+      "id": "4158:43874",
+      "width": 360,
+      "height": 1386,
+      "platform": "mobile"
+    },
+    {
+      "name": "Modal",
+      "id": "4158:43894",
+      "width": 360,
+      "height": 640,
+      "platform": "mobile"
+    },
+    {
+      "name": "Alert",
+      "id": "4158:43897",
+      "width": 1440,
+      "height": 1024,
+      "platform": "desktop"
+    },
+    {
+      "name": "Alert",
+      "id": "4158:43917",
+      "width": 360,
+      "height": 640,
+      "platform": "mobile"
+    }
+  ],
+  "colors": [
+    {
+      "name": "W/Light 1",
+      "hex": "#ffffff"
+    },
+    {
+      "name": "Frame 26086786",
+      "hex": "#202020"
+    },
+    {
+      "name": "#CBCBCB",
+      "hex": "#868686"
+    },
+    {
+      "name": "Frame 26086765",
+      "hex": "#11577a"
+    },
+    {
+      "name": "Frame 26086777",
+      "hex": "#adadad"
+    },
+    {
+      "name": "متن آزمایشی",
+      "hex": "#0c0c0c"
+    },
+    {
+      "name": "Frame 26086765",
+      "hex": "#d2e9f5"
+    },
+    {
+      "name": "Frame 26086763",
+      "hex": "#a5d3eb"
+    },
+    {
+      "name": "Frame 26086750",
+      "hex": "#1d91cc"
+    },
+    {
+      "name": "Frame 26086715",
+      "hex": "#77bde0"
+    },
+    {
+      "name": "Frame 26086766",
+      "hex": "#e8f4fa"
+    },
+    {
+      "name": "Caption - sm",
+      "hex": "#353535"
+    },
+    {
+      "name": "متن ازمایشی",
+      "hex": "#404040"
+    },
+    {
+      "name": "#F4B740",
+      "hex": "#dfdfdf"
+    },
+    {
+      "name": "Frame 26086764",
+      "hex": "#bbdef0"
+    },
+    {
+      "name": "Frame 26086715",
+      "hex": "#061d29"
+    },
+    {
+      "name": "Frame 26086763",
+      "hex": "#092b3d"
+    },
+    {
+      "name": "Frame 26086764",
+      "hex": "#0c3a52"
+    },
+    {
+      "name": "Frame 26086779",
+      "hex": "#ededed"
+    },
+    {
+      "name": "Frame 26086766",
+      "hex": "#1774a3"
+    },
+    {
+      "name": "Frame 26086778",
+      "hex": "#f9f9f9"
+    },
+    {
+      "name": "Frame 26086784",
+      "hex": "#606060"
+    },
+    {
+      "name": "Frame 26086781",
+      "hex": "#cbcbcb"
+    },
+    {
+      "name": "Frame 26086787",
+      "hex": "#c30000"
+    },
+    {
+      "name": "Frame 26086790",
+      "hex": "#00966d"
+    },
+    {
+      "name": "Frame 26086793",
+      "hex": "#a9791c"
+    },
+    {
+      "name": "Frame 26086788",
+      "hex": "#fff2f2"
+    },
+    {
+      "name": "Frame 26086791",
+      "hex": "#f3fdfa"
+    },
+    {
+      "name": "Frame 26086794",
+      "hex": "#fff8e1"
+    },
+    {
+      "name": "Frame 26086789",
+      "hex": "#ed2e2e"
+    },
+    {
+      "name": "Frame 26086792",
+      "hex": "#00ba88"
+    },
+    {
+      "name": "Frame 26086795",
+      "hex": "#f4b740"
+    }
+  ],
+  "fetchedAt": "2026-06-18T12:47:27.099Z"
+}
