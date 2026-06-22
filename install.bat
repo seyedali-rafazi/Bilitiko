@@ -27,4 +27,4 @@ echo Or double-click on run.bat
 echo.
 pause
 
-@REM Made with Bob
+@REM 

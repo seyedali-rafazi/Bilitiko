@@ -1,18 +1,55 @@
-import { FaUser, FaEnvelope, FaPhone, FaLock } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaPhone, FaBus, FaPlane, FaTrain } from 'react-icons/fa';
 import { SecurityBadge } from './PaymentForm';
+import type { ResolvedBooking } from '@/lib/booking-storage';
 import type { BookingData } from '@/lib/types';
 
 interface OrderSummaryProps {
   bookingData: BookingData;
-  pricePerTicket?: number;
+  resolved: ResolvedBooking;
+  pricePerTicket: number;
 }
 
-export default function OrderSummary({ bookingData, pricePerTicket = 2500000 }: OrderSummaryProps) {
+export default function OrderSummary({ bookingData, resolved, pricePerTicket }: OrderSummaryProps) {
   const totalPrice = pricePerTicket * bookingData.passengers.length;
+
+  const tripLabel =
+    resolved.kind === 'flight'
+      ? 'پرواز'
+      : resolved.transportType === 'bus'
+        ? 'اتوبوس'
+        : 'قطار';
+
+  const tripTitle =
+    resolved.kind === 'flight'
+      ? `${resolved.flight.origin} → ${resolved.flight.destination}`
+      : `${resolved.trip.origin} → ${resolved.trip.destination}`;
+
+  const tripDetail =
+    resolved.kind === 'flight'
+      ? `${resolved.flight.airline} • ${resolved.flight.flightNumber}`
+      : `${resolved.trip.company} • ${resolved.trip.tripNumber}`;
+
+  const TripIcon =
+    resolved.kind === 'flight'
+      ? FaPlane
+      : resolved.transportType === 'bus'
+        ? FaBus
+        : FaTrain;
 
   return (
     <div className="bg-white border border-neutral-gray2 rounded-lg search-box-shadow p-8 sticky top-28">
       <h2 className="text-2xl font-bold mb-6 text-neutral-gray8">خلاصه سفارش</h2>
+
+      <div className="bg-primary-tint1 rounded-lg p-4 mb-6 flex items-start gap-3">
+        <div className="bg-white p-2 rounded-lg">
+          <TripIcon className={`text-primary-blue text-lg ${resolved.kind === 'flight' ? '-rotate-45' : ''}`} />
+        </div>
+        <div className="flex-1 min-w-0 text-right">
+          <p className="text-xs text-neutral-gray6 mb-0.5">{tripLabel}</p>
+          <p className="font-bold text-neutral-gray8">{tripTitle}</p>
+          <p className="text-xs text-neutral-gray6 mt-0.5">{tripDetail}</p>
+        </div>
+      </div>
 
       <div className="space-y-4 mb-6 pb-6 border-b border-neutral-gray2">
         <div className="flex justify-between items-center">

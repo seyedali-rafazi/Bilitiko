@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/shadcn/button';
 import { Card, CardContent } from '@/components/ui/shadcn/card';
 import { Separator } from '@/components/ui/shadcn/separator';
 import type { TransportTrip } from '@/lib/transport-utils';
+import AirlineLogo from '../flights/AirlineLogo';
 
 interface TransportCardProps {
   trip: TransportTrip;
@@ -22,7 +23,7 @@ export default function TransportCard({ trip, index, onSelect, type }: Transport
       <CardContent className="flex items-stretch p-0">
         <div className="flex-1 p-5 lg:p-6">
           <div className="flex items-center gap-3 mb-5">
-            <div className="text-4xl">{trip.logo}</div>
+            <AirlineLogo airline={trip.company} size="lg" />
             <div className="min-w-0">
               <h3 className="text-base font-bold truncate">{trip.company}</h3>
               <p className="text-xs text-muted-foreground mt-0.5">{trip.tripNumber}</p>
@@ -92,4 +93,3 @@ export default function TransportCard({ trip, index, onSelect, type }: Transport
   );
 }
 
-// Made with Bob

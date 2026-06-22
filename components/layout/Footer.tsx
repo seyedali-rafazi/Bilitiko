@@ -19,7 +19,7 @@ export default function Footer() {
               <div className="bg-gradient-to-br from-primary-blue to-primary-shade1 p-2 rounded-lg">
                 <FaPlane className="text-white text-xl -rotate-45" />
               </div>
-              <span className="text-2xl font-bold text-primary-blue">بیلیتو</span>
+              <span className="text-2xl font-bold text-primary-blue">بیلیتیکو</span>
             </div>
             <p className="text-base text-neutral-gray7 mb-4 leading-relaxed">
               تلفن پشتیبانی:{' '}
@@ -51,9 +51,9 @@ export default function Footer() {
           </div>
 
           <div className="text-right">
-            <h3 className="text-xl font-bold text-neutral-gray8 mb-4">اپلیکیشن بیلیتو</h3>
+            <h3 className="text-xl font-bold text-neutral-gray8 mb-4">اپلیکیشن بیلیتیکو</h3>
             <p className="text-base text-neutral-gray7 mb-6 leading-relaxed">
-              با نصب اپلیکیشن بیلیتو راحتی و سرعت در رزرو بلیط هواپیما را داشته باشید.
+              با نصب اپلیکیشن بیلیتیکو راحتی و سرعت در رزرو بلیط هواپیما را داشته باشید.
             </p>
             <div className="flex gap-3">
               <a
@@ -81,7 +81,7 @@ export default function Footer() {
         <div className="lg:hidden text-center py-4 space-y-3">
           <div className="flex items-center justify-center gap-2">
             <FaPlane className="text-primary-blue -rotate-45" />
-            <span className="font-bold text-primary-blue">بیلیتو</span>
+            <span className="font-bold text-primary-blue">بیلیتیکو</span>
           </div>
           <div className="flex flex-wrap justify-center gap-3">
             {FOOTER_LINKS.slice(0, 3).map((item) => (
@@ -94,11 +94,11 @@ export default function Footer() {
             پشتیبانی:{' '}
             <a href="tel:0214045" className="text-primary-blue">021-4045</a>
           </p>
-          <p className="text-xs text-neutral-gray5">© بیلیتو - رزرو بلیط هواپیما</p>
+          <p className="text-xs text-neutral-gray5">© بیلیتیکو - رزرو بلیط هواپیما</p>
         </div>
 
         <div className="hidden lg:flex flex-col md:flex-row items-center justify-between pt-8 border-t border-neutral-gray2 gap-4">
-          <p className="text-sm text-neutral-gray6">© ۱۴۰۵ بیلیتو - تمامی حقوق محفوظ است</p>
+          <p className="text-sm text-neutral-gray6">© ۱۴۰۵ بیلیتیکو - تمامی حقوق محفوظ است</p>
           <div className="flex items-center gap-4">
             {SOCIAL_LINKS.map(({ icon: Icon, href, label }) => (
               <a

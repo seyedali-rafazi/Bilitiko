@@ -98,7 +98,7 @@ export function clearInsuranceBooking() {
 
 export function getUserDisplayName(user: UserSession | null): string {
   if (!user) return 'کاربر مهمان';
-  return `${user.firstName} ${user.lastName}`.trim() || 'کاربر بیلیتو';
+  return `${user.firstName} ${user.lastName}`.trim() || 'کاربر بیلیتیکو';
 }
 
 export function getUserInitials(user: UserSession | null): string {

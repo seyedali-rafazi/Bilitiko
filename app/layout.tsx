@@ -3,7 +3,7 @@ import './globals.css';
 import AppShell from '@/components/layout/AppShell';
 
 export const metadata: Metadata = {
-  title: 'بیلیتو | رزرو بلیط هواپیما',
+  title: 'بیلیتیکو | رزرو بلیط هواپیما',
   description: 'سیستم رزرو آنلاین بلیط هواپیما - ارزان‌ترین و بهترین پروازها',
 };
 

@@ -139,7 +139,7 @@ export default function LoginPage() {
             <div className="space-y-4 text-center py-4">
               <SuccessAnimation />
               <h2 className="text-lg font-bold text-neutral-gray8">ثبت نام موفق!</h2>
-              <p className="text-sm text-neutral-gray6">به بیلیتو خوش آمدید</p>
+              <p className="text-sm text-neutral-gray6">به بیلیتیکو خوش آمدید</p>
               <Button fullWidth onClick={saveSessionAndFinish}>ورود به پروفایل</Button>
             </div>
           )}

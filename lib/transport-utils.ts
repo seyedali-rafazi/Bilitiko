@@ -85,4 +85,3 @@ export function buildDatePriceStrip(centerDate: string | null, basePrice: number
   });
 }
 
-// Made with Bob

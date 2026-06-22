@@ -113,6 +113,7 @@ export default function TripSearchBox({ mode }: TripSearchBoxProps) {
                 value={searchData.departureDate}
                 onChange={(value) => setSearchData({ ...searchData, departureDate: value })}
                 required
+                disablePastDates
               />
             </div>
 

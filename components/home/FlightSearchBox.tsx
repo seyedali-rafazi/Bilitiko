@@ -95,6 +95,7 @@ export default function FlightSearchBox() {
                 value={searchData.departureDate}
                 onChange={(value) => updateField('departureDate', value)}
                 required
+                disablePastDates
               />
               {errors.departureDate && <p className="text-xs text-status-error mt-1">{errors.departureDate}</p>}
             </div>

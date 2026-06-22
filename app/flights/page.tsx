@@ -12,11 +12,14 @@ import FlightFiltersSidebar from '@/components/flights/FlightFiltersSidebar';
 import FlightResultsHeader from '@/components/flights/FlightResultsHeader';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { MOCK_FLIGHTS } from '@/lib/mock-data';
+import { useAppDispatch } from '@/lib/store/hooks';
+import { selectFlight } from '@/lib/store/bookingSlice';
 import { getPriceBounds } from '@/lib/flight-utils';
 
 function FlightsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const [sort, setSort] = useState('cheapest');
   const [selectedAirlines, setSelectedAirlines] = useState<string[]>([]);
   const [selectedStops, setSelectedStops] = useState<number[]>([]);
@@ -79,6 +82,10 @@ function FlightsContent() {
   }, [flights, minPrice]);
 
   const handleSelectFlight = (flightId: number) => {
+    const flight = MOCK_FLIGHTS.find((f) => f.id === flightId);
+    if (flight) {
+      dispatch(selectFlight(flight));
+    }
     router.push(`/booking?flightId=${flightId}&passengers=${passengers}`);
   };
 

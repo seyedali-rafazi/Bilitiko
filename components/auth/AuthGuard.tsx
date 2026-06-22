@@ -36,4 +36,3 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   return <>{children}</>;
 }
 
-// Made with Bob

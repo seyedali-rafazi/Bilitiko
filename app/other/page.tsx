@@ -16,7 +16,7 @@ const services = [
 export default function OtherPage() {
   return (
     <PageLayout>
-      <Hero title="سایر خدمات" subtitle="خدمات متنوع سفر با بیلیتو" height="h-[240px]" />
+      <Hero title="سایر خدمات" subtitle="خدمات متنوع سفر با بیلیتیکو" height="h-[240px]" />
 
       <div className="container mx-auto px-4 py-12 max-w-[1224px]">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

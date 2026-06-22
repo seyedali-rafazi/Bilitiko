@@ -62,7 +62,11 @@ export interface ContactInfo {
 }
 
 export interface BookingData {
-  flightId: string | null;
+  flightId?: string | null;
+  flight?: Flight;
+  tripId?: string | null;
+  transportType?: 'bus' | 'train';
+  trip?: TransportTrip;
   passengers: Passenger[];
   contactInfo: ContactInfo;
 }
@@ -97,7 +101,7 @@ export interface UserSession {
 }
 
 export type TicketStatus = 'confirmed' | 'pending' | 'cancelled';
-export type TicketType = 'flight' | 'insurance';
+export type TicketType = 'flight' | 'insurance' | 'bus' | 'train';
 
 export interface UserTicket {
   id: string;
@@ -114,6 +118,10 @@ export interface UserTicket {
   planId?: string;
   coverage?: string;
   destination?: string;
+  company?: string; // For bus/train
+  departureTime?: string;
+  arrivalTime?: string;
+  seatNumbers?: string[];
 }
 
 export interface InsurancePlan {

@@ -12,11 +12,14 @@ import TransportFiltersSidebar from '@/components/transport/TransportFiltersSide
 import TransportResultsHeader from '@/components/transport/TransportResultsHeader';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { MOCK_BUSES } from '@/lib/mock-data';
+import { useAppDispatch } from '@/lib/store/hooks';
+import { selectTransport } from '@/lib/store/bookingSlice';
 import { getPriceBounds, BUS_COMPANIES, type TransportTrip } from '@/lib/transport-utils';
 
 function BusResultsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const [sort, setSort] = useState('cheapest');
   const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, Infinity]);
@@ -77,6 +80,10 @@ function BusResultsContent() {
   }, [trips, minPrice]);
 
   const handleSelectTrip = (tripId: number) => {
+    const trip = allTrips.find((t) => t.id === tripId);
+    if (trip) {
+      dispatch(selectTransport({ trip, transportType: 'bus' }));
+    }
     router.push(`/booking?tripId=${tripId}&type=bus&passengers=${passengers || '1'}`);
   };
 
@@ -179,4 +186,3 @@ export default function BusResultsPage() {
   );
 }
 
-// Made with Bob

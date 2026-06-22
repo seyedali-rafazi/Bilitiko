@@ -40,7 +40,7 @@ export default function InsurancePage() {
   return (
     <PageLayout mobileTitle="بیمه مسافرتی">
       <div className="lg:hidden px-4 py-4 bg-primary-tint1">
-        <h2 className="text-lg font-bold text-neutral-gray8 mb-2">بیمه مسافرتی بیلیتو</h2>
+        <h2 className="text-lg font-bold text-neutral-gray8 mb-2">بیمه مسافرتی بیلیتیکو</h2>
         <p className="text-sm text-neutral-gray6">سفر خود را با خیال راحت آغاز کنید</p>
       </div>
 

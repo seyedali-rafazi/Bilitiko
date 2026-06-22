@@ -59,7 +59,7 @@ export default function AppSplash() {
           </div>
         </div>
 
-        <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">بیلیتو</h1>
+        <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">بیلیتیکو</h1>
         <p className="text-white/70 text-sm mb-10">رزرو آنلاین بلیط سفر</p>
 
         <div className="w-56 h-1.5 bg-white/20 rounded-full overflow-hidden mb-3">

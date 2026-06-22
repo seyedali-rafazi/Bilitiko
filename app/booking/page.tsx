@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, Suspense, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 import PageLayout from '@/components/layout/PageLayout';
@@ -9,12 +9,20 @@ import PassengerForm from '@/components/booking/PassengerForm';
 import ContactForm from '@/components/booking/ContactForm';
 import Button from '@/components/ui/Button';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { findFlight, findTrip } from '@/lib/booking-storage';
+import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
+import { saveBooking, selectFlight, selectTransport } from '@/lib/store/bookingSlice';
 import type { Passenger, ContactInfo } from '@/lib/types';
 
 function BookingContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const bookingState = useAppSelector((state) => state.booking);
+
   const flightId = searchParams.get('flightId');
+  const tripId = searchParams.get('tripId');
+  const transportType = searchParams.get('type') as 'bus' | 'train' | null;
   const passengersCount = parseInt(searchParams.get('passengers') || '1');
 
   const [passengers, setPassengers] = useState<Passenger[]>(
@@ -31,6 +39,20 @@ function BookingContent() {
   const [contactInfo, setContactInfo] = useState<ContactInfo>({ email: '', phone: '' });
   const [agreed, setAgreed] = useState(false);
 
+  useEffect(() => {
+    if (flightId) {
+      const flight = findFlight(flightId);
+      if (flight && bookingState.flight?.id !== flight.id) {
+        dispatch(selectFlight(flight));
+      }
+    } else if (tripId && transportType) {
+      const trip = findTrip(tripId, transportType);
+      if (trip && bookingState.trip?.id !== trip.id) {
+        dispatch(selectTransport({ trip, transportType }));
+      }
+    }
+  }, [flightId, tripId, transportType, dispatch, bookingState.flight?.id, bookingState.trip?.id]);
+
   const handlePassengerChange = (index: number, field: string, value: string) => {
     const updated = [...passengers];
     updated[index] = { ...updated[index], [field]: value };
@@ -39,10 +61,18 @@ function BookingContent() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem(
-      'bookingData',
-      JSON.stringify({ flightId, passengers, contactInfo })
+
+    const hasFlight = Boolean(flightId || bookingState.flight);
+    const hasTransport = Boolean(
+      (tripId && transportType) || (bookingState.trip && bookingState.transportType)
     );
+
+    if (!hasFlight && !hasTransport) {
+      router.push('/');
+      return;
+    }
+
+    dispatch(saveBooking({ passengers, contactInfo }));
     router.push('/payment');
   };
 

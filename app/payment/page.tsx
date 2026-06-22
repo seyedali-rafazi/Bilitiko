@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaArrowRight, FaLock } from 'react-icons/fa';
 import PageLayout from '@/components/layout/PageLayout';
@@ -9,72 +9,61 @@ import PaymentMethodSelector, { CardForm } from '@/components/payment/PaymentFor
 import OrderSummary from '@/components/payment/OrderSummary';
 import Button from '@/components/ui/Button';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { MOCK_FLIGHTS } from '@/lib/mock-data';
+import {
+  bookingStateToData,
+  createTicketFromBooking,
+  resolveBookingState,
+} from '@/lib/booking-storage';
+import { useAppSelector } from '@/lib/store/hooks';
 import { addTicket, generateTrackingCode } from '@/lib/session';
-import type { BookingData, UserTicket } from '@/lib/types';
 
 export default function PaymentPage() {
   const router = useRouter();
-  const [bookingData, setBookingData] = useState<BookingData | null>(null);
+  const bookingState = useAppSelector((state) => state.booking);
+  const completingPayment = useRef(false);
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [cardNumber, setCardNumber] = useState('');
   const [cvv, setCvv] = useState('');
   const [expiry, setExpiry] = useState('');
   const [processing, setProcessing] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  const bookingData = useMemo(() => bookingStateToData(bookingState), [bookingState]);
+  const resolved = useMemo(() => resolveBookingState(bookingState), [bookingState]);
+  const pricePerTicket = resolved?.pricePerTicket ?? 0;
 
   useEffect(() => {
-    const data = localStorage.getItem('bookingData');
-    if (data) {
-      setBookingData(JSON.parse(data));
-    } else {
+    if (completingPayment.current) return;
+    if (!resolved || bookingState.passengers.length === 0) {
       router.push('/');
+      return;
     }
-  }, [router]);
-
-  const flight = bookingData?.flightId
-    ? MOCK_FLIGHTS.find((f) => f.id === Number(bookingData.flightId))
-    : undefined;
-
-  const pricePerTicket = flight?.price ?? 2500000;
+    setReady(true);
+  }, [resolved, bookingState.passengers.length, router]);
 
   const handlePayment = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!bookingData || processing) return;
+    if (!resolved || processing) return;
 
     setProcessing(true);
+    completingPayment.current = true;
+    const snapshot = bookingData;
+
     setTimeout(() => {
       const trackingCode = generateTrackingCode('BL');
-      const totalPrice = pricePerTicket * bookingData.passengers.length;
-      const today = new Date().toLocaleDateString('fa-IR');
-
-      const title = flight
-        ? `${flight.origin} → ${flight.destination}`
-        : 'بلیط پرواز';
-      const subtitle = flight
-        ? `${flight.airline} • ${flight.flightNumber} • ${flight.departureTime}`
-        : `مسافران: ${bookingData.passengers.length} نفر`;
-
-      const ticket: UserTicket = {
-        id: trackingCode,
-        type: 'flight',
-        title,
-        subtitle,
-        date: today,
-        price: totalPrice,
-        status: 'confirmed',
-        trackingCode,
-        airline: flight?.airline,
-        from: flight?.origin,
-        to: flight?.destination,
-      };
+      const ticket = createTicketFromBooking(snapshot, trackingCode);
+      if (!ticket) {
+        completingPayment.current = false;
+        setProcessing(false);
+        return;
+      }
 
       addTicket(ticket);
-      localStorage.removeItem('bookingData');
-      router.push(`/payment/success?code=${trackingCode}&amount=${totalPrice}`);
+      router.push(`/payment/success?code=${trackingCode}&amount=${ticket.price}`);
     }, 1500);
   };
 
-  if (!bookingData) {
+  if (!ready || !resolved) {
     return (
       <PageLayout showFooter={false} mobileTitle="پرداخت">
         <LoadingSpinner />
@@ -117,7 +106,6 @@ export default function PaymentPage() {
                 <Button type="submit" fullWidth disabled={processing}>
                   {processing ? (
                     <>
-                      <div className="animate-spin">⏳</div>
                       <span>در حال پردازش...</span>
                     </>
                   ) : (
@@ -132,7 +120,11 @@ export default function PaymentPage() {
           </div>
 
           <div className="lg:col-span-1">
-            <OrderSummary bookingData={bookingData} pricePerTicket={pricePerTicket} />
+            <OrderSummary
+              bookingData={bookingData}
+              resolved={resolved}
+              pricePerTicket={pricePerTicket}
+            />
           </div>
         </div>
       </div>

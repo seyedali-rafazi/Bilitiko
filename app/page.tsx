@@ -7,12 +7,14 @@ import DestinationCards from '@/components/home/DestinationCards';
 import PopularFlights from '@/components/home/PopularFlights';
 import AdvantagesSection from '@/components/home/AdvantagesSection';
 import FAQSection from '@/components/home/FAQSection';
+import { BANNER_IMAGES } from '@/lib/constants';
 
 export default function Home() {
   return (
     <PageLayout>
       <Hero
-        title="راحتی و سرعت در رزرو بلیط هواپیما با بیلیتو"
+        title="راحتی و سرعت در رزرو بلیط هواپیما با بیلیتیکو"
+        backgroundImage={BANNER_IMAGES.flight}
         height="h-[180px] lg:h-[340px]"
       />
       <MobileSearchBox />

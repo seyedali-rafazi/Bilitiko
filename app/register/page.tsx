@@ -26,7 +26,7 @@ export default function RegisterPage() {
 
   return (
     <PageLayout showFooter={false}>
-      <Hero title="ثبت نام در بیلیتو" height="h-[200px]" />
+      <Hero title="ثبت نام در بیلیتیکو" height="h-[200px]" />
       <div className="container mx-auto px-4 py-12 max-w-lg -mt-16 relative z-10">
         <Card padding="lg">
           <form onSubmit={handleSubmit} className="space-y-4">
