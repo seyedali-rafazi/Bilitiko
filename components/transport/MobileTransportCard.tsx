@@ -72,7 +72,7 @@ export default function MobileTransportCard({ trip, onSelect, type }: MobileTran
             <Users className="h-3.5 w-3.5 text-status-success" />
             <span>{trip.availableSeats.toLocaleString('fa-IR')} صندلی</span>
           </div>
-          <Button onClick={() => onSelect(trip.id)} size="sm">
+          <Button onClick={() => onSelect(trip._id)} size="sm">
             رزرو بلیط
           </Button>
         </div>

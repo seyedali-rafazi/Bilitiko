@@ -1,9 +1,14 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { format as formatJalali, parse as parseJalali } from 'date-fns-jalali';
 import { FaCalendarAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { cn } from '@/lib/utils';
+
+const DROPDOWN_WIDTH = 320;
+const VIEWPORT_PADDING = 16;
+const DROPDOWN_GAP = 8;
 
 interface PersianDatePickerProps {
   value: string; // ISO format (YYYY-MM-DD)
@@ -38,7 +43,60 @@ export default function PersianDatePicker({
   const [isOpen, setIsOpen] = useState(false);
   const [displayMonth, setDisplayMonth] = useState<Date>(new Date());
   const [showYearMonthPicker, setShowYearMonthPicker] = useState(false);
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
+  const [mounted, setMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const updateDropdownPosition = useCallback(() => {
+    const trigger = triggerRef.current;
+    const dropdown = dropdownRef.current;
+    if (!trigger || !dropdown) return;
+
+    const triggerRect = trigger.getBoundingClientRect();
+    const dropdownHeight = dropdown.offsetHeight;
+    const maxWidth = window.innerWidth - VIEWPORT_PADDING * 2;
+    const width = Math.min(DROPDOWN_WIDTH, maxWidth);
+
+    let left = triggerRect.left + (triggerRect.width - width) / 2;
+    left = Math.max(VIEWPORT_PADDING, Math.min(left, window.innerWidth - width - VIEWPORT_PADDING));
+
+    let top = triggerRect.bottom + DROPDOWN_GAP;
+    if (top + dropdownHeight > window.innerHeight - VIEWPORT_PADDING) {
+      top = triggerRect.top - dropdownHeight - DROPDOWN_GAP;
+    }
+    top = Math.max(VIEWPORT_PADDING, top);
+
+    setDropdownStyle({
+      position: 'fixed',
+      top,
+      left,
+      width,
+      zIndex: 9999,
+    });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!isOpen) return;
+    updateDropdownPosition();
+  }, [isOpen, showYearMonthPicker, displayMonth, updateDropdownPosition]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleReposition = () => updateDropdownPosition();
+    window.addEventListener('resize', handleReposition);
+    window.addEventListener('scroll', handleReposition, true);
+    return () => {
+      window.removeEventListener('resize', handleReposition);
+      window.removeEventListener('scroll', handleReposition, true);
+    };
+  }, [isOpen, updateDropdownPosition]);
 
   // Convert ISO date to Persian display
   const getDisplayValue = () => {
@@ -54,9 +112,14 @@ export default function PersianDatePicker({
   // Close picker when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+      const target = event.target as Node;
+      if (
+        containerRef.current?.contains(target) ||
+        dropdownRef.current?.contains(target)
+      ) {
+        return;
       }
+      setIsOpen(false);
     };
 
     if (isOpen) {
@@ -214,6 +277,7 @@ export default function PersianDatePicker({
       )}
       
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
@@ -228,8 +292,12 @@ export default function PersianDatePicker({
         <FaCalendarAlt className="text-neutral-gray5" />
       </button>
 
-      {isOpen && (
-        <div className="absolute top-full left-0 mt-2 bg-white border border-neutral-gray3 rounded-xl shadow-lg z-50 p-4 w-[320px] max-w-[calc(100vw-2rem)]">
+      {isOpen && mounted && createPortal(
+        <div
+          ref={dropdownRef}
+          style={dropdownStyle}
+          className="bg-white border border-neutral-gray3 rounded-xl shadow-lg p-4"
+        >
           {!showYearMonthPicker ? (
             <>
               {/* Month/Year Header */}
@@ -373,7 +441,8 @@ export default function PersianDatePicker({
               </div>
             </>
           )}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

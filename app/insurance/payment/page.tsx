@@ -80,7 +80,7 @@ function InsurancePaymentContent() {
 
       // Save ticket locally for the profile/tickets view
       const ticket: UserTicket = {
-        id: apiResponse.tracking_code,
+        _id: apiResponse.tracking_code,
         type: 'insurance',
         title: apiResponse.plan_title,
         subtitle: `${apiResponse.first_name} ${apiResponse.last_name} • ${apiResponse.destination}`,
