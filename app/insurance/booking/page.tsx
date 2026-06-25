@@ -10,12 +10,29 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { Card, CardContent } from '@/components/ui/shadcn/card';
 import { getInsurancePlan } from '@/lib/insurance-data';
 import { getUser, setInsuranceBooking } from '@/lib/session';
+import type { InsurancePlan } from '@/lib/types';
+
+function getSelectedPlan(planId: string): InsurancePlan | undefined {
+  // Try the plan stored when the user confirmed on the insurance listing page.
+  // This handles API plans whose _id is a number (e.g. "1") which don't exist
+  // in the static INSURANCE_PLANS list.
+  try {
+    const raw = localStorage.getItem('bilito-selected-insurance-plan');
+    if (raw) {
+      const stored: InsurancePlan = JSON.parse(raw);
+      if (String(stored._id) === String(planId)) return stored;
+    }
+  } catch {
+    // ignore parse errors
+  }
+  return getInsurancePlan(planId);
+}
 
 function InsuranceBookingContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const planId = searchParams.get('plan') || 'gold';
-  const plan = getInsurancePlan(planId);
+  const plan = getSelectedPlan(planId);
 
   const [form, setForm] = useState({
     firstName: '',

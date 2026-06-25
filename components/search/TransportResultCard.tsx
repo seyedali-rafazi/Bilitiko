@@ -78,7 +78,7 @@ export default function TransportResultCard({
               <span className="text-[11px]">{trip.availableSeats} صندلی</span>
             </div>
           </div>
-          <Button onClick={() => onSelect(trip.id)} className="shrink-0">
+          <Button onClick={() => onSelect(trip._id)} className="shrink-0">
             {selectLabel}
           </Button>
         </div>

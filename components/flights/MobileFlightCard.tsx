@@ -54,7 +54,7 @@ export default function MobileFlightCard({ flight, onSelect }: MobileFlightCardP
             <Users className="h-3.5 w-3.5" />
             <span>{flight.availableSeats.toLocaleString('fa-IR')} صندلی</span>
           </div>
-          <Button size="sm" onClick={() => onSelect(flight.id)}>
+          <Button size="sm" onClick={() => onSelect(flight._id)}>
             انتخاب
           </Button>
         </div>

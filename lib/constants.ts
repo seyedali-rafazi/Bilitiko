@@ -17,6 +17,15 @@ export const CITIES: City[] = [
   { code: 'IST', name: 'استانبول' },
 ];
 
+/** Domestic cities available for bus and train — value is the Persian name
+ *  (exactly as stored in the backend transport_trips collection). */
+export const TRANSPORT_CITIES = [
+  'تهران',
+  'مشهد',
+  'اصفهان',
+  'شیراز',
+] as const;
+
 export const SEARCH_HISTORY = [
   'تهران به استانبول',
   'تهران به دبی',

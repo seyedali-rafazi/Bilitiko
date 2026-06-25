@@ -11,7 +11,13 @@ import {
 } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import type { UserSession } from '@/lib/types';
-import { clearUser, getUser, setUser, isLoggedIn as checkLoggedIn } from '@/lib/session';
+import {
+  clearUser,
+  getUser,
+  setUser,
+  saveTokensAndUser,
+  isLoggedIn as checkLoggedIn,
+} from '@/lib/session';
 
 interface AuthContextValue {
   user: UserSession | null;
@@ -19,6 +25,7 @@ interface AuthContextValue {
   isLoggedIn: boolean;
   refresh: () => void;
   login: (session: UserSession) => void;
+  loginWithApi: (session: UserSession, tokens: { access: string; refresh: string }) => void;
   logout: () => void;
   requireAuth: (redirectTo?: string) => boolean;
 }
@@ -48,10 +55,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     syncFromStorage();
   }, [syncFromStorage]);
 
+  // Legacy login (no tokens) – kept for compatibility
   const login = useCallback((session: UserSession) => {
     setUser(session);
     setUserState(session);
   }, []);
+
+  // New login that also stores JWT tokens
+  const loginWithApi = useCallback(
+    (session: UserSession, tokens: { access: string; refresh: string }) => {
+      saveTokensAndUser(session, tokens);
+      setUserState(session);
+    },
+    []
+  );
 
   const logout = useCallback(() => {
     clearUser();
@@ -80,10 +97,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoggedIn: !!user || checkLoggedIn(),
       refresh,
       login,
+      loginWithApi,
       logout,
       requireAuth,
     }),
-    [user, ready, refresh, login, logout, requireAuth]
+    [user, ready, refresh, login, loginWithApi, logout, requireAuth]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

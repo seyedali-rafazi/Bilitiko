@@ -1,4 +1,3 @@
-import { MOCK_FLIGHTS, MOCK_BUSES, MOCK_TRAINS } from './mock-data';
 import type { BookingState } from './store/bookingSlice';
 import type { BookingData, Flight, TransportTrip, UserTicket } from './types';
 
@@ -7,9 +6,9 @@ const REDUX_BOOKING_KEY = 'bilito-booking-redux';
 
 export function bookingStateToData(state: BookingState): BookingData {
   return {
-    flightId: state.flight ? String(state.flight.id) : null,
+    flightId: state.flight ? String(state.flight._id) : null,
     flight: state.flight ?? undefined,
-    tripId: state.trip ? String(state.trip.id) : null,
+    tripId: state.trip ? String(state.trip._id) : null,
     transportType: state.transportType ?? undefined,
     trip: state.trip ?? undefined,
     passengers: state.passengers,
@@ -17,16 +16,16 @@ export function bookingStateToData(state: BookingState): BookingData {
   };
 }
 
+/** These finders are only used for recovery from Redux state; real data comes from the API. */
 export function findTrip(
-  tripId: string | number,
-  transportType: 'bus' | 'train'
+  _tripId: string | number,
+  _transportType: 'bus' | 'train'
 ): TransportTrip | undefined {
-  const trips = transportType === 'bus' ? MOCK_BUSES : MOCK_TRAINS;
-  return trips.find((t) => t.id === Number(tripId));
+  return undefined;
 }
 
-export function findFlight(flightId: string | number): Flight | undefined {
-  return MOCK_FLIGHTS.find((f) => f.id === Number(flightId));
+export function findFlight(_flightId: string | number): Flight | undefined {
+  return undefined;
 }
 
 export type ResolvedBooking =
@@ -74,7 +73,7 @@ export function createTicketFromBooking(
   if (resolved.kind === 'flight') {
     const { flight } = resolved;
     return {
-      id: trackingCode,
+      _id: trackingCode,
       type: 'flight',
       title: `${flight.origin} → ${flight.destination}`,
       subtitle: `${flight.airline} • ${flight.flightNumber} • ${flight.departureTime}`,
@@ -92,7 +91,7 @@ export function createTicketFromBooking(
 
   const { trip, transportType } = resolved;
   return {
-    id: trackingCode,
+    _id: trackingCode,
     type: transportType,
     title: `${trip.origin} → ${trip.destination}`,
     subtitle: `${trip.company} • ${trip.tripNumber} • ${trip.departureTime}`,

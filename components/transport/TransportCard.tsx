@@ -84,7 +84,7 @@ export default function TransportCard({ trip, index, onSelect, type }: Transport
             <span>{trip.availableSeats.toLocaleString('fa-IR')} صندلی</span>
           </div>
 
-          <Button onClick={() => onSelect(trip.id)} className="w-full">
+          <Button onClick={() => onSelect(trip._id)} className="w-full">
             رزرو بلیط
           </Button>
         </div>

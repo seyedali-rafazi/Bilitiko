@@ -3,7 +3,6 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense, useState, useMemo, useCallback, useEffect } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
-import AuthGuard from '@/components/auth/AuthGuard';
 import SearchSummary from '@/components/flights/SearchSummary';
 import FlightCard from '@/components/flights/FlightCard';
 import MobileFlightCard from '@/components/flights/MobileFlightCard';
@@ -11,20 +10,27 @@ import FlightToolbar from '@/components/flights/FlightToolbar';
 import FlightFiltersSidebar from '@/components/flights/FlightFiltersSidebar';
 import FlightResultsHeader from '@/components/flights/FlightResultsHeader';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { MOCK_FLIGHTS } from '@/lib/mock-data';
 import { useAppDispatch } from '@/lib/store/hooks';
 import { selectFlight } from '@/lib/store/bookingSlice';
 import { getPriceBounds } from '@/lib/flight-utils';
+import { flightsApi } from '@/lib/api';
+import { apiFightToFlight } from '@/lib/api-transforms';
+import { useAuth } from '@/hooks/useAuth';
+import type { Flight } from '@/lib/types';
 
 function FlightsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { isLoggedIn } = useAuth();
   const [sort, setSort] = useState('cheapest');
   const [selectedAirlines, setSelectedAirlines] = useState<string[]>([]);
   const [selectedStops, setSelectedStops] = useState<number[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, Infinity]);
   const [activeDate, setActiveDate] = useState<string | null>(null);
+  const [allFlights, setAllFlights] = useState<Flight[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState('');
 
   const origin = searchParams.get('origin');
   const destination = searchParams.get('destination');
@@ -39,11 +45,37 @@ function FlightsContent() {
     setActiveDate(departureDate);
   }, [departureDate]);
 
-  const { min: minPrice, max: maxPrice } = useMemo(() => getPriceBounds(MOCK_FLIGHTS), []);
+  // Fetch from real API
+  useEffect(() => {
+    if (!origin || !destination || !departureDate) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setFetchError('');
+
+    flightsApi
+      .search({
+        origin,
+        destination,
+        departure_date: departureDate,
+        flight_class: flightClass ?? 'economy',
+      })
+      .then((res) => {
+        setAllFlights(res.map(apiFightToFlight));
+      })
+      .catch((err: unknown) => {
+        setFetchError(err instanceof Error ? err.message : 'خطا در دریافت پروازها');
+      })
+      .finally(() => setLoading(false));
+  }, [origin, destination, departureDate, passengers, flightClass]);
+
+  const { min: minPrice, max: maxPrice } = useMemo(() => getPriceBounds(allFlights), [allFlights]);
 
   useEffect(() => {
-    setPriceRange([minPrice, maxPrice]);
-  }, [minPrice, maxPrice]);
+    if (allFlights.length > 0) setPriceRange([minPrice, maxPrice]);
+  }, [minPrice, maxPrice, allFlights.length]);
 
   const toggleAirline = useCallback((airline: string) => {
     setSelectedAirlines((prev) =>
@@ -58,7 +90,7 @@ function FlightsContent() {
   }, []);
 
   const flights = useMemo(() => {
-    let list = [...MOCK_FLIGHTS];
+    let list = [...allFlights];
 
     if (selectedAirlines.length > 0) {
       list = list.filter((f) => selectedAirlines.includes(f.airline));
@@ -74,7 +106,7 @@ function FlightsContent() {
     if (sort === 'earliest') list.sort((a, b) => a.departureTime.localeCompare(b.departureTime));
     if (sort === 'latest') list.sort((a, b) => b.departureTime.localeCompare(a.departureTime));
     return list;
-  }, [sort, selectedAirlines, selectedStops, priceRange]);
+  }, [sort, selectedAirlines, selectedStops, priceRange, allFlights]);
 
   const basePrice = useMemo(() => {
     if (flights.length > 0) return Math.min(...flights.map((f) => f.price));
@@ -82,7 +114,12 @@ function FlightsContent() {
   }, [flights, minPrice]);
 
   const handleSelectFlight = (flightId: number) => {
-    const flight = MOCK_FLIGHTS.find((f) => f.id === flightId);
+    if (!isLoggedIn) {
+      const returnUrl = encodeURIComponent(`/booking?flightId=${flightId}&passengers=${passengers}`);
+      router.push(`/login?returnUrl=${returnUrl}`);
+      return;
+    }
+    const flight = allFlights.find((f) => f._id === flightId);
     if (flight) {
       dispatch(selectFlight(flight));
     }
@@ -96,9 +133,16 @@ function FlightsContent() {
     window.history.replaceState(null, '', `/flights?${params.toString()}`);
   }, []);
 
-  return (
-    <AuthGuard>
+  if (loading) {
+    return (
       <PageLayout showFooter={false} mobileTitle="نتایج جستجو">
+        <LoadingSpinner message="در حال جستجوی پرواز…" />
+      </PageLayout>
+    );
+  }
+
+  return (
+    <PageLayout showFooter={false} mobileTitle="نتایج جستجو">
         <div className="container mx-auto px-0 lg:px-4 py-4 lg:py-8 max-w-[1224px]">
         <div className="px-4 lg:px-0">
           <SearchSummary
@@ -113,7 +157,7 @@ function FlightsContent() {
         <FlightToolbar
           sort={sort}
           onSortChange={setSort}
-          flights={MOCK_FLIGHTS}
+          flights={allFlights}
           filteredCount={flights.length}
           selectedAirlines={selectedAirlines}
           selectedStops={selectedStops}
@@ -128,7 +172,7 @@ function FlightsContent() {
 
         <div className="flex gap-4 lg:gap-6 px-4 lg:px-0">
           <FlightFiltersSidebar
-            flights={MOCK_FLIGHTS}
+            flights={allFlights}
             filteredCount={flights.length}
             selectedAirlines={selectedAirlines}
             selectedStops={selectedStops}
@@ -148,9 +192,20 @@ function FlightsContent() {
               onDateSelect={handleDateSelect}
             />
 
-            {noResults || flights.length === 0 ? (
+            {fetchError ? (
               <div className="bg-white border border-neutral-gray2 rounded-xl p-12 text-center">
-                <div className="text-5xl mb-4">✈️</div>
+                <div className="text-5xl mb-4">⚠️</div>
+                <p className="text-lg font-bold text-neutral-gray8 mb-2">خطا در دریافت اطلاعات</p>
+                <p className="text-sm text-neutral-gray6 mb-6">{fetchError}</p>
+                <button
+                  onClick={() => router.push('/')}
+                  className="bg-primary-blue text-white px-6 py-3 rounded-lg text-sm font-medium"
+                >
+                  جستجوی مجدد
+                </button>
+              </div>
+            ) : noResults || flights.length === 0 ? (
+              <div className="bg-white border border-neutral-gray2 rounded-xl p-12 text-center">
                 <p className="text-lg font-bold text-neutral-gray8 mb-2">پروازی یافت نشد</p>
                 <p className="text-sm text-neutral-gray6 mb-6">لطفاً فیلترها یا تاریخ را تغییر دهید</p>
                 <button
@@ -163,7 +218,7 @@ function FlightsContent() {
             ) : (
               <div className="space-y-4">
                 {flights.map((flight, index) => (
-                  <div key={flight.id}>
+                  <div key={flight._id}>
                     <div className="hidden lg:block">
                       <FlightCard flight={flight} index={index} onSelect={handleSelectFlight} />
                     </div>
@@ -176,7 +231,6 @@ function FlightsContent() {
         </div>
         </div>
       </PageLayout>
-    </AuthGuard>
   );
 }
 

@@ -6,7 +6,7 @@ import { FaBus, FaExchangeAlt, FaSearch, FaTrain } from 'react-icons/fa';
 import Tabs from '@/components/ui/Tabs';
 import Button from '@/components/ui/Button';
 import PersianDatePicker from '@/components/ui/PersianDatePicker';
-import { CITIES } from '@/lib/constants';
+import { TRANSPORT_CITIES } from '@/lib/constants';
 import { addSearchHistory, buildTripSearchUrl } from '@/lib/search-utils';
 import type { SearchData, TripType } from '@/lib/types';
 
@@ -47,15 +47,13 @@ export default function TripSearchBox({ mode }: TripSearchBoxProps) {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    const originName = CITIES.find((c) => c.code === searchData.origin)?.name;
-    const destName = CITIES.find((c) => c.code === searchData.destination)?.name;
-    if (originName && destName) {
-      addSearchHistory(`${originName} به ${destName}`);
+    if (searchData.origin && searchData.destination) {
+      addSearchHistory(`${searchData.origin} به ${searchData.destination}`);
     }
     router.push(buildTripSearchUrl(config.path, searchData, tripType));
   };
 
-  const cityOptions = CITIES.map((c) => ({ value: c.code, label: c.name }));
+  const cityOptions = TRANSPORT_CITIES.map((name) => ({ value: name, label: name }));
 
   return (
     <div className="container mx-auto px-4 -mt-24 lg:-mt-28 relative z-20 mb-12">

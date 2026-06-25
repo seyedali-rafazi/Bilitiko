@@ -16,7 +16,7 @@ export interface City {
 }
 
 export interface Flight {
-  id: number;
+  _id: number;
   airline: string;
   logo: string;
   flightNumber: string;
@@ -33,7 +33,7 @@ export interface Flight {
 }
 
 export interface TransportTrip {
-  id: number;
+  _id: number;
   company: string;
   logo: string;
   tripNumber: string;
@@ -104,7 +104,7 @@ export type TicketStatus = 'confirmed' | 'pending' | 'cancelled';
 export type TicketType = 'flight' | 'insurance' | 'bus' | 'train';
 
 export interface UserTicket {
-  id: string;
+  _id: string;
   type: TicketType;
   title: string;
   subtitle: string;
@@ -125,7 +125,7 @@ export interface UserTicket {
 }
 
 export interface InsurancePlan {
-  id: string;
+  _id: string;
   title: string;
   price: number;
   coverage: string;

@@ -1,4 +1,5 @@
 import type { UserSession, UserTicket, InsuranceBookingData } from './types';
+import { setTokens as apiSetTokens, clearTokens as apiClearTokens } from './api';
 
 const USER_KEY = 'bilito-user-session';
 const TICKETS_KEY = 'bilito-user-tickets';
@@ -51,7 +52,16 @@ export function setUser(user: UserSession) {
   writeJSON(USER_KEY, user);
 }
 
+export function saveTokensAndUser(
+  session: UserSession,
+  tokens: { access: string; refresh: string }
+) {
+  apiSetTokens(tokens.access, tokens.refresh);
+  writeJSON(USER_KEY, session);
+}
+
 export function clearUser() {
+  apiClearTokens();
   removeKey(USER_KEY);
   removeKey(TICKETS_KEY);
   removeKey(INSURANCE_BOOKING_KEY);
@@ -94,6 +104,7 @@ export function setInsuranceBooking(data: InsuranceBookingData) {
 
 export function clearInsuranceBooking() {
   removeKey(INSURANCE_BOOKING_KEY);
+  removeKey('bilito-selected-insurance-plan');
 }
 
 export function getUserDisplayName(user: UserSession | null): string {

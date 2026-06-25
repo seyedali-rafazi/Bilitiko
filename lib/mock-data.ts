@@ -2,7 +2,7 @@ import type { Flight } from './types';
 
 export const MOCK_FLIGHTS: Flight[] = [
   {
-    id: 1,
+    _id: 1,
     airline: 'ایران ایر',
     logo: '🛫',
     flightNumber: 'IR-301',
@@ -18,7 +18,7 @@ export const MOCK_FLIGHTS: Flight[] = [
     features: ['وای‌فای رایگان', 'غذا', 'بیمه مسافرتی'],
   },
   {
-    id: 2,
+    _id: 2,
     airline: 'ماهان',
     logo: '✈️',
     flightNumber: 'W5-1024',
@@ -34,7 +34,7 @@ export const MOCK_FLIGHTS: Flight[] = [
     features: ['وای‌فای رایگان', 'غذا', 'سرگرمی'],
   },
   {
-    id: 3,
+    _id: 3,
     airline: 'آسمان',
     logo: '🛩️',
     flightNumber: 'EP-752',
@@ -50,7 +50,7 @@ export const MOCK_FLIGHTS: Flight[] = [
     features: ['غذا', 'بیمه مسافرتی'],
   },
   {
-    id: 4,
+    _id: 4,
     airline: 'قشم ایر',
     logo: '🛫',
     flightNumber: 'QB-1142',
@@ -66,7 +66,7 @@ export const MOCK_FLIGHTS: Flight[] = [
     features: ['غذا'],
   },
   {
-    id: 5,
+    _id: 5,
     airline: 'ایران ایر',
     logo: '🛫',
     flightNumber: 'IR-305',

@@ -1,9 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, Suspense, useState } from 'react';
+import { useEffect, useCallback, Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { FaEnvelope, FaPhone, FaPlane, FaShieldAlt, FaSignOutAlt, FaSuitcase, FaTicketAlt, FaBus, FaTrain } from 'react-icons/fa';
+import {
+  FaEnvelope, FaPhone, FaPlane, FaShieldAlt, FaSignOutAlt,
+  FaSuitcase, FaTicketAlt, FaBus, FaTrain, FaSync,
+} from 'react-icons/fa';
 import PageLayout from '@/components/layout/PageLayout';
 import PageHeader from '@/components/layout/PageHeader';
 import Badge from '@/components/ui/Badge';
@@ -12,10 +15,11 @@ import { Button } from '@/components/ui/shadcn/button';
 import { Separator } from '@/components/ui/shadcn/separator';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useAuth } from '@/hooks/useAuth';
-import { getTickets, getUser, getUserDisplayName, getUserInitials } from '@/lib/session';
+import { getUser, getUserDisplayName, getUserInitials, setUser } from '@/lib/session';
 import { downloadTicketPDF, type TicketData } from '@/lib/pdf-generator';
 import { format as formatJalali } from 'date-fns-jalali';
 import type { UserTicket } from '@/lib/types';
+import { authApi, bookingsApi, insuranceApi, type ApiBookingResponse, type ApiInsuranceBookingResponse } from '@/lib/api';
 
 type ProfileTab = 'account' | 'tickets' | 'trips';
 
@@ -25,16 +29,113 @@ const statusMap = {
   cancelled: { label: 'لغو شده', className: 'bg-neutral-gray1 text-neutral-gray6', variant: 'neutral' as const },
 };
 
+// ─── API → UserTicket converters ─────────────────────────────────────────────
+
+const VALID_STATUSES = new Set<string>(['confirmed', 'pending', 'cancelled']);
+
+function safePrice(raw: number | string | undefined | null): number {
+  if (raw == null) return 0;
+  const n = typeof raw === 'number' ? raw : parseFloat(String(raw));
+  return isNaN(n) ? 0 : n;
+}
+
+function safeStatus(raw: string | undefined | null): UserTicket['status'] {
+  const s = (raw ?? '').toLowerCase();
+  return VALID_STATUSES.has(s) ? (s as UserTicket['status']) : 'confirmed';
+}
+
+function bookingToTicket(b: ApiBookingResponse): UserTicket {
+  const passenger = b.passengers?.[0];
+  const passengerName = passenger ? `${passenger.first_name} ${passenger.last_name}` : '';
+  const type = (b.booking_type ?? 'flight') as UserTicket['type'];
+  const titleMap: Record<string, string> = {
+    flight: 'بلیط پرواز', bus: 'بلیط اتوبوس', train: 'بلیط قطار',
+  };
+
+  return {
+    _id: String(b._id ?? b.tracking_code),
+    type,
+    title: titleMap[type] ?? 'بلیط',
+    subtitle: passengerName,
+    date: (b.created_at ?? '').slice(0, 10),
+    price: safePrice(b.total_price),
+    status: safeStatus(b.status),
+    trackingCode: b.tracking_code ?? '',
+    seatNumbers: b.seat_numbers,
+  };
+}
+
+function insuranceBookingToTicket(b: ApiInsuranceBookingResponse): UserTicket {
+  return {
+    _id: b.tracking_code,
+    type: 'insurance',
+    title: b.plan_title ?? 'بیمه مسافرتی',
+    subtitle: `${b.first_name ?? ''} ${b.last_name ?? ''} • ${b.destination ?? ''}`.trim(),
+    date: b.start_date ?? '',
+    price: safePrice(b.plan_price),
+    status: 'confirmed',
+    trackingCode: b.tracking_code ?? '',
+    planId: b.plan_id,
+    coverage: b.plan_coverage,
+    destination: b.destination,
+  };
+}
+
+// ─── Profile page ─────────────────────────────────────────────────────────────
+
 function ProfileContent() {
   const searchParams = useSearchParams();
   const tab = (searchParams.get('tab') as ProfileTab) || 'account';
-  const { user, ready, logout, requireAuth } = useAuth();
+  const { user, ready, logout, requireAuth, refresh } = useAuth();
   const sessionUser = user ?? (ready ? getUser() : null);
-  const tickets = ready ? getTickets() : [];
+
+  const [tickets, setTickets] = useState<UserTicket[]>([]);
+  const [ticketsLoading, setTicketsLoading] = useState(true);
 
   useEffect(() => {
     if (ready) requireAuth();
   }, [ready, requireAuth]);
+
+  // Sync profile from API
+  useEffect(() => {
+    if (!ready || !sessionUser) return;
+    authApi.getProfile().then((profile) => {
+      const updated = {
+        ...sessionUser,
+        firstName: profile.first_name,
+        lastName: profile.last_name,
+        email: profile.email,
+        phone: profile.phone ?? sessionUser.phone,
+      };
+      setUser(updated);
+      refresh();
+    }).catch(() => {});
+  }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Load tickets from backend
+  const loadTickets = useCallback(async () => {
+    setTicketsLoading(true);
+    try {
+      const [bookings, insuranceBookings] = await Promise.all([
+        bookingsApi.getMyBookings(),
+        insuranceApi.getMyBookings(),
+      ]);
+      const all: UserTicket[] = [
+        ...bookings.map(bookingToTicket),
+        ...insuranceBookings.map(insuranceBookingToTicket),
+      ].sort((a, b) => b.date.localeCompare(a.date));
+      setTickets(all);
+    } catch {
+      // API unreachable — show empty list
+      setTickets([]);
+    } finally {
+      setTicketsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (ready && sessionUser) loadTickets();
+  }, [ready, sessionUser, loadTickets]);
 
   if (!ready || !sessionUser) {
     return (
@@ -56,12 +157,23 @@ function ProfileContent() {
 
       <div className="container mx-auto px-4 pb-8 max-w-6xl">
         <div className="flex flex-col lg:flex-row gap-6">
-          <ProfileSidebar user={sessionUser} ticketCount={tickets.length} activeTab={tab} onLogout={logout} />
+          <ProfileSidebar
+            user={sessionUser}
+            ticketCount={tickets.length}
+            activeTab={tab}
+            onLogout={logout}
+          />
 
           <div className="flex-1 min-w-0 space-y-6">
-            {tab === 'account' && <AccountSection user={sessionUser} tickets={tickets} />}
-            {tab === 'tickets' && <TicketsSection tickets={tickets} />}
-            {tab === 'trips' && <TripsSection />}
+            {tab === 'account' && (
+              <AccountSection user={sessionUser} tickets={tickets} ticketsLoading={ticketsLoading} />
+            )}
+            {tab === 'tickets' && (
+              <TicketsSection tickets={tickets} loading={ticketsLoading} onRefresh={loadTickets} />
+            )}
+            {tab === 'trips' && (
+              <TripsSection tickets={tickets} loading={ticketsLoading} onRefresh={loadTickets} />
+            )}
           </div>
         </div>
       </div>
@@ -81,12 +193,16 @@ export default function ProfilePage() {
   );
 }
 
+// ─── Account section ──────────────────────────────────────────────────────────
+
 function AccountSection({
   user,
   tickets,
+  ticketsLoading,
 }: {
   user: NonNullable<ReturnType<typeof useAuth>['user']>;
   tickets: UserTicket[];
+  ticketsLoading: boolean;
 }) {
   return (
     <>
@@ -111,7 +227,9 @@ function AccountSection({
             </Link>
           </div>
 
-          {tickets.length === 0 ? (
+          {ticketsLoading ? (
+            <div className="py-8"><LoadingSpinner message="در حال بارگذاری..." /></div>
+          ) : tickets.length === 0 ? (
             <div className="text-center py-10">
               <FaTicketAlt className="text-4xl text-neutral-gray4 mx-auto mb-3" />
               <p className="text-neutral-gray6 mb-4">هنوز بلیط یا بیمه‌نامه‌ای ندارید</p>
@@ -123,7 +241,7 @@ function AccountSection({
           ) : (
             <div className="space-y-3">
               {tickets.slice(0, 5).map((ticket) => (
-                <TicketRow key={ticket.id} ticket={ticket} />
+                <TicketRow key={ticket._id} ticket={ticket} />
               ))}
             </div>
           )}
@@ -133,11 +251,31 @@ function AccountSection({
   );
 }
 
-function TicketsSection({ tickets }: { tickets: UserTicket[] }) {
+// ─── Tickets section ──────────────────────────────────────────────────────────
+
+function TicketsSection({
+  tickets,
+  loading,
+  onRefresh,
+}: {
+  tickets: UserTicket[];
+  loading: boolean;
+  onRefresh: () => void;
+}) {
   return (
     <Card>
       <CardContent className="p-6">
-        {tickets.length === 0 ? (
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-neutral-gray8">همه بلیط‌ها و بیمه‌ها</h2>
+          <Button variant="outline" size="sm" onClick={onRefresh} disabled={loading}>
+            <FaSync className={loading ? 'animate-spin' : ''} />
+            <span className="mr-1">بروزرسانی</span>
+          </Button>
+        </div>
+
+        {loading ? (
+          <div className="py-12"><LoadingSpinner message="در حال بارگذاری..." /></div>
+        ) : tickets.length === 0 ? (
           <div className="text-center py-16">
             <FaTicketAlt className="text-5xl text-neutral-gray4 mx-auto mb-4" />
             <p className="text-neutral-gray6 mb-6">بلیط یا بیمه‌نامه‌ای ندارید</p>
@@ -149,7 +287,7 @@ function TicketsSection({ tickets }: { tickets: UserTicket[] }) {
         ) : (
           <div className="space-y-4">
             {tickets.map((ticket) => (
-              <TicketCard key={ticket.id} ticket={ticket} />
+              <TicketCard key={ticket._id} ticket={ticket} />
             ))}
           </div>
         )}
@@ -158,25 +296,44 @@ function TicketsSection({ tickets }: { tickets: UserTicket[] }) {
   );
 }
 
-function TripsSection() {
-  const tickets = getTickets();
-  const flightTickets = tickets.filter(t => t.type === 'flight' || t.type === 'bus' || t.type === 'train');
-  
+// ─── Trips section ────────────────────────────────────────────────────────────
+
+function TripsSection({
+  tickets,
+  loading,
+  onRefresh,
+}: {
+  tickets: UserTicket[];
+  loading: boolean;
+  onRefresh: () => void;
+}) {
+  const travelTickets = tickets.filter(
+    (t) => t.type === 'flight' || t.type === 'bus' || t.type === 'train'
+  );
+
   return (
     <Card>
       <CardContent className="p-6">
-        {flightTickets.length === 0 ? (
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-neutral-gray8">سفرهای من</h2>
+          <Button variant="outline" size="sm" onClick={onRefresh} disabled={loading}>
+            <FaSync className={loading ? 'animate-spin' : ''} />
+            <span className="mr-1">بروزرسانی</span>
+          </Button>
+        </div>
+
+        {loading ? (
+          <div className="py-12"><LoadingSpinner message="در حال بارگذاری..." /></div>
+        ) : travelTickets.length === 0 ? (
           <div className="text-center py-16">
             <FaSuitcase className="text-5xl text-neutral-gray4 mx-auto mb-4" />
             <p className="text-xl text-neutral-gray6 mb-6">هنوز سفری رزرو نکرده‌اید</p>
-            <Link href="/">
-              <Button>جستجوی پرواز</Button>
-            </Link>
+            <Link href="/"><Button>جستجوی پرواز</Button></Link>
           </div>
         ) : (
           <div className="space-y-4">
-            {flightTickets.map((ticket) => (
-              <div key={ticket.id} className="bg-white border border-neutral-gray2 rounded-xl p-4 shadow-sm">
+            {travelTickets.map((ticket) => (
+              <div key={ticket._id} className="bg-white border border-neutral-gray2 rounded-xl p-4 shadow-sm">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
                     <div className="bg-primary-tint1 p-3 rounded-lg">
@@ -185,12 +342,8 @@ function TripsSection() {
                       {ticket.type === 'train' && <FaTrain className="text-primary-blue text-xl" />}
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-neutral-gray8">
-                        {ticket.title}
-                      </h3>
-                      <p className="text-neutral-gray6 text-sm">
-                        {ticket.subtitle}
-                      </p>
+                      <h3 className="text-lg font-bold text-neutral-gray8">{ticket.title}</h3>
+                      <p className="text-neutral-gray6 text-sm">{ticket.subtitle}</p>
                       <p className="text-neutral-gray5 text-xs mt-1">کد: {ticket.trackingCode}</p>
                     </div>
                   </div>
@@ -201,7 +354,6 @@ function TripsSection() {
                     <span className="font-bold text-primary-blue">
                       {ticket.price.toLocaleString('fa-IR')} تومان
                     </span>
-                    <Button variant="outline" size="sm">جزئیات</Button>
                   </div>
                 </div>
               </div>
@@ -212,6 +364,8 @@ function TripsSection() {
     </Card>
   );
 }
+
+// ─── Sidebar ──────────────────────────────────────────────────────────────────
 
 function ProfileSidebar({
   user,
@@ -241,7 +395,12 @@ function ProfileSidebar({
 
           <nav className="space-y-1 text-right">
             <SidebarLink href="/profile" icon={<FaEnvelope />} label="اطلاعات کاربری" active={activeTab === 'account'} />
-            <SidebarLink href="/profile?tab=tickets" icon={<FaTicketAlt />} label={`بلیط‌ها (${ticketCount.toLocaleString('fa-IR')})`} active={activeTab === 'tickets'} />
+            <SidebarLink
+              href="/profile?tab=tickets"
+              icon={<FaTicketAlt />}
+              label={`بلیط‌ها (${ticketCount.toLocaleString('fa-IR')})`}
+              active={activeTab === 'tickets'}
+            />
             <SidebarLink href="/profile?tab=trips" icon={<FaSuitcase />} label="سفرهای من" active={activeTab === 'trips'} />
             <SidebarLink href="/insurance" icon={<FaShieldAlt />} label="خرید بیمه" />
           </nav>
@@ -259,7 +418,11 @@ function ProfileSidebar({
             </div>
           </div>
 
-          <Button variant="outline" className="w-full mt-5 text-status-error border-status-error/30 hover:bg-status-errorBg" onClick={onLogout}>
+          <Button
+            variant="outline"
+            className="w-full mt-5 text-status-error border-status-error/30 hover:bg-status-errorBg"
+            onClick={onLogout}
+          >
             <FaSignOutAlt />
             خروج از حساب
           </Button>
@@ -268,6 +431,8 @@ function ProfileSidebar({
     </aside>
   );
 }
+
+// ─── Small components ─────────────────────────────────────────────────────────
 
 function SidebarLink({
   href,
@@ -303,7 +468,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 }
 
 function TicketRow({ ticket }: { ticket: UserTicket }) {
-  const status = statusMap[ticket.status];
+  const status = statusMap[ticket.status] ?? statusMap.confirmed;
   return (
     <div className="flex items-center justify-between gap-3 p-3 rounded-lg border border-neutral-gray2 bg-neutral-gray1/50">
       <div className="min-w-0">
@@ -320,7 +485,7 @@ function TicketRow({ ticket }: { ticket: UserTicket }) {
 function TicketCard({ ticket }: { ticket: UserTicket }) {
   const [isDownloading, setIsDownloading] = useState(false);
   const user = getUser();
-  
+
   const getTicketIcon = () => {
     switch (ticket.type) {
       case 'flight':
@@ -343,30 +508,20 @@ function TicketCard({ ticket }: { ticket: UserTicket }) {
     }
 
     setIsDownloading(true);
-    
     try {
-      // Try to get actual booking data from localStorage
-      const bookingDataStr = localStorage.getItem('bookingData');
-      const bookingData = bookingDataStr ? JSON.parse(bookingDataStr) : null;
-      
-      // Get actual passengers or use user data as fallback
-      const passengers = bookingData?.passengers && bookingData.passengers.length > 0
-        ? bookingData.passengers
-        : [
-            {
-              firstName: user?.firstName || 'مسافر',
-              lastName: user?.lastName || 'نمونه',
-              nationalId: '0123456789',
-            },
-          ];
-      
       const ticketData: TicketData = {
         trackingCode: ticket.trackingCode,
         bookingDate: formatJalali(new Date(), 'yyyy/MM/dd - HH:mm'),
-        passengers: passengers,
+        passengers: [
+          {
+            firstName: user?.firstName || 'مسافر',
+            lastName: user?.lastName || '',
+            nationalId: '',
+          },
+        ],
         contact: {
-          email: bookingData?.contactInfo?.email || user?.email || 'example@email.com',
-          phone: bookingData?.contactInfo?.phone || user?.phone || '09123456789',
+          email: user?.email || '',
+          phone: user?.phone || '',
         },
         pricing: {
           basePrice: ticket.price,
@@ -376,17 +531,16 @@ function TicketCard({ ticket }: { ticket: UserTicket }) {
         },
       };
 
-      // Add flight or transport specific data
       if (ticket.type === 'flight') {
         ticketData.flight = {
-          flightNumber: ticket.trackingCode.split('-')[0] || 'IR-724',
+          flightNumber: ticket.trackingCode,
           airline: ticket.airline || 'ایران ایر',
           origin: ticket.from || 'تهران',
           destination: ticket.to || 'مشهد',
           departureDate: ticket.date,
           departureTime: ticket.departureTime || '14:30',
           arrivalTime: ticket.arrivalTime || '16:00',
-          duration: '1 ساعت و 30 دقیقه',
+          duration: '',
           class: 'اقتصادی',
         };
       } else if (ticket.type === 'bus' || ticket.type === 'train') {
@@ -401,7 +555,7 @@ function TicketCard({ ticket }: { ticket: UserTicket }) {
           seatNumbers: ticket.seatNumbers,
         };
       }
-      
+
       downloadTicketPDF(ticketData);
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -424,11 +578,13 @@ function TicketCard({ ticket }: { ticket: UserTicket }) {
           <p className="text-xs text-neutral-gray6 mt-0.5">{ticket.subtitle}</p>
           <p className="text-[11px] text-neutral-gray5 mt-1">کد پیگیری: {ticket.trackingCode}</p>
         </div>
-        <Badge variant={statusMap[ticket.status].variant}>{statusMap[ticket.status].label}</Badge>
+        <Badge variant={(statusMap[ticket.status] ?? statusMap.confirmed).variant}>
+          {(statusMap[ticket.status] ?? statusMap.confirmed).label}
+        </Badge>
       </div>
       <div className="flex items-center justify-between pt-3 border-t border-neutral-gray2">
         <span className="font-bold text-primary-blue text-sm">
-          {ticket.price.toLocaleString('fa-IR')} تومان
+          {(ticket.price ?? 0).toLocaleString('fa-IR')} تومان
         </span>
         <Button
           variant="outline"

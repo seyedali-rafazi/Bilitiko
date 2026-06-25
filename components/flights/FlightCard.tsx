@@ -68,7 +68,7 @@ export default function FlightCard({ flight, index, onSelect }: FlightCardProps)
             <span>{flight.availableSeats.toLocaleString('fa-IR')} صندلی</span>
           </div>
 
-          <Button onClick={() => onSelect(flight.id)} className="w-full">
+          <Button onClick={() => onSelect(flight._id)} className="w-full">
             انتخاب پرواز
           </Button>
         </div>

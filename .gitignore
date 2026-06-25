@@ -26,6 +26,7 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env
 
 # figma api cache (regenerate with npm run figma:sync)
 figma-*.json
@@ -37,3 +38,5 @@ figma-*.json
 *.tsbuildinfo
 next-env.d.ts
 
+# backend 
+/backend

@@ -1,5 +1,10 @@
-export const BUS_COMPANIES = ['اتوبوسرانی تهران', 'همسفر', 'گیتی‌پیما'];
-export const TRAIN_COMPANIES = ['رجا', 'فدک'];
+export const BUS_COMPANIES = ['ایران‌پیما', 'تعاونی ۵', 'رجا سفر', 'سیروسفر', 'ارس‌گشت'];
+export const TRAIN_COMPANIES = ['راه‌آهن جمهوری اسلامی ایران', 'رجا', 'قطار سریع‌السیر'];
+
+/** Derives unique companies from live trip data (always up-to-date). */
+export function getUniqueCompanies(trips: TransportTrip[]): string[] {
+  return Array.from(new Set(trips.map((t) => t.company))).sort();
+}
 
 export const SORT_OPTIONS = [
   { id: 'cheapest', label: 'ارزان‌ترین' },
@@ -8,7 +13,7 @@ export const SORT_OPTIONS = [
 ];
 
 export interface TransportTrip {
-  id: number;
+  _id: number;
   company: string;
   logo: string;
   tripNumber: string;

@@ -1,6 +1,12 @@
 import type { Flight } from './types';
 
-export const AIRLINES = ['ایران ایر', 'ماهان', 'آسمان', 'قشم ایر'];
+/** Derives the unique set of airlines present in the given flights array. */
+export function getUniqueAirlines(flights: Flight[]): string[] {
+  return Array.from(new Set(flights.map((f) => f.airline))).sort();
+}
+
+// Keep static list for fallback / legacy references
+export const AIRLINES = ['ماهان', 'ایران‌ایر', 'آتا', 'قشم‌ایر', 'زاگرس', 'کاسپین', 'آسمان'];
 
 export const STOP_OPTIONS = [
   { value: 0, label: 'بدون توقف' },

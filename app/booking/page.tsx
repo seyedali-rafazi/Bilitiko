@@ -42,16 +42,16 @@ function BookingContent() {
   useEffect(() => {
     if (flightId) {
       const flight = findFlight(flightId);
-      if (flight && bookingState.flight?.id !== flight.id) {
+      if (flight && bookingState.flight?._id !== flight._id) {
         dispatch(selectFlight(flight));
       }
     } else if (tripId && transportType) {
       const trip = findTrip(tripId, transportType);
-      if (trip && bookingState.trip?.id !== trip.id) {
+      if (trip && bookingState.trip?._id !== trip._id) {
         dispatch(selectTransport({ trip, transportType }));
       }
     }
-  }, [flightId, tripId, transportType, dispatch, bookingState.flight?.id, bookingState.trip?.id]);
+  }, [flightId, tripId, transportType, dispatch, bookingState.flight?._id, bookingState.trip?._id]);
 
   const handlePassengerChange = (index: number, field: string, value: string) => {
     const updated = [...passengers];

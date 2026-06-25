@@ -1,18 +1,61 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaPlane } from 'react-icons/fa';
-import { POPULAR_FLIGHTS } from '@/lib/constants';
+import { POPULAR_FLIGHTS as FALLBACK_FLIGHTS } from '@/lib/constants';
 import { buildFlightSearchUrl } from '@/lib/search-utils';
+import { flightsApi } from '@/lib/api';
+import type { ApiPopularFlight } from '@/lib/api';
 
 const cities = ['تهران', 'مشهد', 'اصفهان', 'کیش'];
+
+interface PopularFlightItem {
+  from: string;
+  to: string;
+  fromCode: string;
+  toCode: string;
+  price: string;
+  image: string;
+}
+
+function mapApiToItem(f: ApiPopularFlight): PopularFlightItem {
+  return {
+    from: f.from_city,
+    to: f.to_city,
+    fromCode: f.from_code,
+    toCode: f.to_code,
+    price: f.price,
+    image: f.image || '',
+  };
+}
 
 export default function PopularFlights() {
   const router = useRouter();
   const [activeCity, setActiveCity] = useState('تهران');
+  const [allFlights, setAllFlights] = useState<PopularFlightItem[]>([]);
 
-  const filtered = POPULAR_FLIGHTS.filter((f) => f.from === activeCity);
+  useEffect(() => {
+    flightsApi
+      .getPopular()
+      .then((res) => setAllFlights(res.map(mapApiToItem)))
+      .catch(() => {
+        // fall back to static constants
+        setAllFlights(
+          FALLBACK_FLIGHTS.map((f) => ({
+            from: f.from,
+            to: f.to,
+            fromCode: f.fromCode,
+            toCode: f.toCode,
+            price: f.price,
+            image: f.image,
+          }))
+        );
+      });
+  }, []);
+
+  const filtered = allFlights.filter((f) => f.from === activeCity);
+  const displayFlights = filtered.length > 0 ? filtered : allFlights;
 
   const openFlight = (fromCode: string, toCode: string) => {
     const today = new Date().toISOString().split('T')[0];
@@ -26,8 +69,6 @@ export default function PopularFlights() {
       })
     );
   };
-
-  const displayFlights = filtered.length > 0 ? filtered : POPULAR_FLIGHTS;
 
   return (
     <div className="container mx-auto px-4 mb-12 max-w-[1224px]">
@@ -63,7 +104,7 @@ export default function PopularFlights() {
           >
             <div
               className="h-[88px] bg-cover bg-center bg-neutral-gray3"
-              style={{ backgroundImage: `url(${flight.image})` }}
+              style={{ backgroundImage: flight.image ? `url(${flight.image})` : undefined }}
             />
             <div className="p-4">
               <div className="flex items-center justify-center gap-2 pb-3 border-b border-neutral-gray2 mb-3">

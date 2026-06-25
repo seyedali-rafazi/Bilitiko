@@ -2,14 +2,14 @@ import type { InsurancePlan } from './types';
 
 export const INSURANCE_PLANS: InsurancePlan[] = [
   {
-    id: 'basic',
+    _id: 'basic',
     title: 'بیمه پایه',
     price: 150000,
     coverage: '۱۰,۰۰۰ یورو',
     features: ['پوشش درمانی اضطراری', 'حمل به مرکز درمانی', 'پوشش تا ۱۰,۰۰۰ یورو', 'پشتیبانی ۲۴ ساعته'],
   },
   {
-    id: 'gold',
+    _id: 'gold',
     title: 'بیمه طلایی',
     price: 350000,
     coverage: '۵۰,۰۰۰ یورو',
@@ -23,7 +23,7 @@ export const INSURANCE_PLANS: InsurancePlan[] = [
     ],
   },
   {
-    id: 'diamond',
+    _id: 'diamond',
     title: 'بیمه الماسی',
     price: 550000,
     coverage: 'نامحدود',
@@ -38,5 +38,5 @@ export const INSURANCE_PLANS: InsurancePlan[] = [
 ];
 
 export function getInsurancePlan(planId: string): InsurancePlan | undefined {
-  return INSURANCE_PLANS.find((p) => p.id === planId);
+  return INSURANCE_PLANS.find((p) => p._id === planId);
 }

@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/shadcn/separator';
 import { Slider } from '@/components/ui/shadcn/slider';
 import type { Flight } from '@/lib/types';
 import {
-  AIRLINES,
+  getUniqueAirlines,
   STOP_OPTIONS,
   buildPriceHistogram,
   formatPriceFull,
@@ -102,7 +102,7 @@ export default function FlightFiltersContent({
 
       <FilterSection title="ایرلاین">
         <div className="space-y-3">
-          {AIRLINES.map((airline) => {
+          {getUniqueAirlines(flights).map((airline) => {
             const count = flights.filter((f) => f.airline === airline).length;
             const id = `${idPrefix}-airline-${airline}`;
             return (

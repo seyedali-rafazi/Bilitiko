@@ -16,6 +16,7 @@ import {
 } from '@/lib/booking-storage';
 import { useAppSelector } from '@/lib/store/hooks';
 import { addTicket, generateTrackingCode } from '@/lib/session';
+import { bookingsApi } from '@/lib/api';
 
 export default function PaymentPage() {
   const router = useRouter();
@@ -41,26 +42,62 @@ export default function PaymentPage() {
     setReady(true);
   }, [resolved, bookingState.passengers.length, router]);
 
-  const handlePayment = (e: React.FormEvent) => {
+  const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!resolved || processing) return;
 
     setProcessing(true);
     completingPayment.current = true;
-    const snapshot = bookingData;
 
-    setTimeout(() => {
-      const trackingCode = generateTrackingCode('BL');
-      const ticket = createTicketFromBooking(snapshot, trackingCode);
-      if (!ticket) {
-        completingPayment.current = false;
-        setProcessing(false);
-        return;
+    try {
+      const passengers = bookingState.passengers.map((p) => ({
+        first_name: p.firstName,
+        last_name: p.lastName,
+        national_id: p.nationalId,
+        birth_date: p.birthDate,
+        gender: p.gender,
+      }));
+
+      const totalPrice = pricePerTicket * bookingState.passengers.length;
+
+      let apiResponse;
+      if (resolved.kind === 'flight') {
+        apiResponse = await bookingsApi.create({
+          booking_type: 'flight',
+          flight_id: resolved.flight._id,
+          passengers,
+          contact_email: bookingState.contactInfo.email,
+          contact_phone: bookingState.contactInfo.phone,
+          total_price: totalPrice,
+        });
+      } else {
+        apiResponse = await bookingsApi.create({
+          booking_type: resolved.transportType,
+          transport_trip_id: resolved.trip._id,
+          passengers,
+          contact_email: bookingState.contactInfo.email,
+          contact_phone: bookingState.contactInfo.phone,
+          total_price: totalPrice,
+        });
       }
 
-      addTicket(ticket);
-      router.push(`/payment/success?code=${trackingCode}&amount=${ticket.price}`);
-    }, 1500);
+      const trackingCode = apiResponse.tracking_code;
+      const ticket = createTicketFromBooking(bookingData, trackingCode);
+      if (ticket) addTicket(ticket);
+
+      router.push(`/payment/success?code=${trackingCode}&amount=${totalPrice}`);
+    } catch {
+      // Fall back to local booking on API error (network issues, etc.)
+      const trackingCode = generateTrackingCode('BL');
+      const ticket = createTicketFromBooking(bookingData, trackingCode);
+      if (ticket) {
+        addTicket(ticket);
+        router.push(`/payment/success?code=${trackingCode}&amount=${ticket.price}`);
+      } else {
+        completingPayment.current = false;
+        setProcessing(false);
+      }
+    }
   };
 
   if (!ready || !resolved) {

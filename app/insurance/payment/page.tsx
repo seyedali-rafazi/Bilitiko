@@ -9,19 +9,28 @@ import Button from '@/components/ui/Button';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { Card, CardContent } from '@/components/ui/shadcn/card';
 import { getInsurancePlan } from '@/lib/insurance-data';
-import {
-  addTicket,
-  clearInsuranceBooking,
-  generateTrackingCode,
-  getInsuranceBooking,
-} from '@/lib/session';
-import type { InsuranceBookingData, UserTicket } from '@/lib/types';
+import { addTicket, clearInsuranceBooking, getInsuranceBooking } from '@/lib/session';
+import { insuranceApi } from '@/lib/api';
+import type { InsuranceBookingData, InsurancePlan, UserTicket } from '@/lib/types';
+
+function getSelectedPlan(planId: string): InsurancePlan | undefined {
+  try {
+    const raw = localStorage.getItem('bilito-selected-insurance-plan');
+    if (raw) {
+      const stored: InsurancePlan = JSON.parse(raw);
+      if (String(stored._id) === String(planId)) return stored;
+    }
+  } catch {
+    // ignore
+  }
+  return getInsurancePlan(planId);
+}
 
 function InsurancePaymentContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const planId = searchParams.get('plan') || 'gold';
-  const plan = getInsurancePlan(planId);
+  const planId = searchParams.get('plan') || '';
+  const plan = getSelectedPlan(planId);
 
   const [booking, setBooking] = useState<InsuranceBookingData | null>(null);
   const [ready, setReady] = useState(false);
@@ -30,6 +39,7 @@ function InsurancePaymentContent() {
   const [cvv, setCvv] = useState('');
   const [expiry, setExpiry] = useState('');
   const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setBooking(getInsuranceBooking());
@@ -47,33 +57,54 @@ function InsurancePaymentContent() {
     }
   }, [ready, plan, booking, planId, router, processing]);
 
-  const handlePay = (e: React.FormEvent) => {
+  const handlePay = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!plan || !booking) return;
 
     setProcessing(true);
+    setError(null);
 
-    setTimeout(() => {
-      const trackingCode = generateTrackingCode('IN');
-      const ticket: UserTicket = {
-        id: trackingCode,
-        type: 'insurance',
-        title: plan.title,
-        subtitle: `${booking.firstName} ${booking.lastName} • ${booking.destination}`,
-        date: booking.startDate,
-        price: plan.price,
-        status: 'confirmed',
-        trackingCode,
-        planId: plan.id,
-        coverage: plan.coverage,
+    try {
+      const apiResponse = await insuranceApi.createBooking({
+        plan_id: String(plan._id),
+        first_name: booking.firstName,
+        last_name: booking.lastName,
+        national_id: booking.nationalId,
+        birth_date: booking.birthDate,
         destination: booking.destination,
+        start_date: booking.startDate,
+        end_date: booking.endDate,
+        phone: booking.phone,
+        email: booking.email,
+      });
+
+      // Save ticket locally for the profile/tickets view
+      const ticket: UserTicket = {
+        id: apiResponse.tracking_code,
+        type: 'insurance',
+        title: apiResponse.plan_title,
+        subtitle: `${apiResponse.first_name} ${apiResponse.last_name} • ${apiResponse.destination}`,
+        date: apiResponse.start_date,
+        price: apiResponse.plan_price,
+        status: 'confirmed',
+        trackingCode: apiResponse.tracking_code,
+        planId: apiResponse.plan_id,
+        coverage: apiResponse.plan_coverage,
+        destination: apiResponse.destination,
       };
 
       addTicket(ticket);
       clearInsuranceBooking();
 
-      router.push(`/insurance/confirmation?status=success&code=${trackingCode}&amount=${plan.price}`);
-    }, 1500);
+      router.push(
+        `/insurance/confirmation?status=success&code=${apiResponse.tracking_code}&amount=${apiResponse.plan_price}`
+      );
+    } catch (err: unknown) {
+      setProcessing(false);
+      const message =
+        err instanceof Error ? err.message : 'خطا در ثبت بیمه. لطفاً دوباره تلاش کنید.';
+      setError(message);
+    }
   };
 
   if (!ready || !plan || !booking) {
@@ -101,15 +132,25 @@ function InsurancePaymentContent() {
               </div>
               <div className="flex justify-between">
                 <span className="text-neutral-gray6">بازه پوشش</span>
-                <span className="font-medium ltr-input text-xs">{booking.startDate} – {booking.endDate}</span>
+                <span className="font-medium ltr-input text-xs">
+                  {booking.startDate} – {booking.endDate}
+                </span>
               </div>
               <div className="flex justify-between pt-3 border-t border-neutral-gray2">
                 <span className="font-bold">مجموع</span>
-                <span className="font-bold text-primary">{plan.price.toLocaleString('fa-IR')} تومان</span>
+                <span className="font-bold text-primary">
+                  {plan.price.toLocaleString('fa-IR')} تومان
+                </span>
               </div>
             </div>
           </CardContent>
         </Card>
+
+        {error && (
+          <div className="bg-status-errorBg border border-status-error/20 rounded-xl p-4 text-center">
+            <p className="text-sm text-status-error">{error}</p>
+          </div>
+        )}
 
         <form onSubmit={handlePay} noValidate className="space-y-4">
           <PaymentMethodSelector paymentMethod={paymentMethod} onChange={setPaymentMethod} />
@@ -126,7 +167,7 @@ function InsurancePaymentContent() {
           )}
 
           <Button type="submit" fullWidth disabled={processing}>
-            {processing ? 'در حال پردازش...' : (<><FaLock /> پرداخت امن</>)}
+            {processing ? 'در حال پردازش...' : <><FaLock /> پرداخت امن</>}
           </Button>
         </form>
       </div>

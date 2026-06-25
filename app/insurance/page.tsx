@@ -8,8 +8,12 @@ import PageLayout from '@/components/layout/PageLayout';
 import Button from '@/components/ui/Button';
 import BottomSheet from '@/components/mobile/BottomSheet';
 import Modal from '@/components/ui/Modal';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { Card, CardContent } from '@/components/ui/shadcn/card';
-import { INSURANCE_PLANS } from '@/lib/insurance-data';
+import { insuranceApi } from '@/lib/api';
+import { apiInsurancePlanToPlan } from '@/lib/api-transforms';
+import { INSURANCE_PLANS as FALLBACK_PLANS } from '@/lib/insurance-data';
+import { isLoggedIn } from '@/lib/session';
 import type { InsurancePlan } from '@/lib/types';
 
 export default function InsurancePage() {
@@ -17,6 +21,8 @@ export default function InsurancePage() {
   const [selectedPlan, setSelectedPlan] = useState<InsurancePlan | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [plans, setPlans] = useState<InsurancePlan[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1024px)');
@@ -26,7 +32,19 @@ export default function InsurancePage() {
     return () => mq.removeEventListener('change', onChange);
   }, []);
 
+  useEffect(() => {
+    insuranceApi
+      .getPlans()
+      .then((res) => setPlans(res.map(apiInsurancePlanToPlan)))
+      .catch(() => setPlans(FALLBACK_PLANS)) // fall back to static data on error
+      .finally(() => setLoading(false));
+  }, []);
+
   const handleSelect = (plan: InsurancePlan) => {
+    if (!isLoggedIn()) {
+      router.push(`/login?returnUrl=/insurance`);
+      return;
+    }
     setSelectedPlan(plan);
     setModalOpen(true);
   };
@@ -34,9 +52,21 @@ export default function InsurancePage() {
   const confirmPlan = () => {
     if (!selectedPlan) return;
     setModalOpen(false);
-    router.push(`/insurance/booking?plan=${selectedPlan.id}`);
+    // Persist the full plan object so booking/payment pages can use it regardless
+    // of whether the id is a static string ('gold') or an API numeric id ('1').
+    localStorage.setItem('bilito-selected-insurance-plan', JSON.stringify(selectedPlan));
+    router.push(`/insurance/booking?plan=${selectedPlan._id}`);
   };
 
+  if (loading) {
+    return (
+      <PageLayout mobileTitle="بیمه مسافرتی">
+        <LoadingSpinner message="در حال بارگذاری پلن‌ها…" />
+      </PageLayout>
+    );
+  }
+
+  
   return (
     <PageLayout mobileTitle="بیمه مسافرتی">
       <div className="lg:hidden px-4 py-4 bg-primary-tint1">
@@ -56,9 +86,9 @@ export default function InsurancePage() {
 
       <div className="max-w-lg lg:max-w-[1224px] mx-auto px-4 py-6">
         <div className="space-y-4 lg:grid lg:grid-cols-3 lg:gap-6 lg:space-y-0">
-          {INSURANCE_PLANS.map((plan) => (
+          {plans.map((plan) => (            
             <Card
-              key={plan.id}
+              key={plan._id}
               className={plan.popular ? 'border-primary border-2 relative shadow-md' : ''}
             >
               <CardContent className="p-6">

@@ -3,7 +3,6 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense, useState, useMemo, useCallback, useEffect } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
-import AuthGuard from '@/components/auth/AuthGuard';
 import SearchSummary from '@/components/flights/SearchSummary';
 import TransportCard from '@/components/transport/TransportCard';
 import MobileTransportCard from '@/components/transport/MobileTransportCard';
@@ -11,19 +10,25 @@ import TransportToolbar from '@/components/transport/TransportToolbar';
 import TransportFiltersSidebar from '@/components/transport/TransportFiltersSidebar';
 import TransportResultsHeader from '@/components/transport/TransportResultsHeader';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { MOCK_BUSES } from '@/lib/mock-data';
 import { useAppDispatch } from '@/lib/store/hooks';
 import { selectTransport } from '@/lib/store/bookingSlice';
-import { getPriceBounds, BUS_COMPANIES, type TransportTrip } from '@/lib/transport-utils';
+import { getPriceBounds, getUniqueCompanies, type TransportTrip } from '@/lib/transport-utils';
+import { transportApi } from '@/lib/api';
+import { apiTripToTransportTrip } from '@/lib/api-transforms';
+import { useAuth } from '@/hooks/useAuth';
 
 function BusResultsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { isLoggedIn } = useAuth();
   const [sort, setSort] = useState('cheapest');
   const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, Infinity]);
   const [activeDate, setActiveDate] = useState<string | null>(null);
+  const [allTrips, setAllTrips] = useState<TransportTrip[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState('');
 
   const origin = searchParams.get('origin');
   const destination = searchParams.get('destination');
@@ -38,19 +43,36 @@ function BusResultsContent() {
     setActiveDate(departureDate);
   }, [departureDate]);
 
-  // Convert MOCK_BUSES to TransportTrip format
-  const allTrips: TransportTrip[] = useMemo(() => 
-    MOCK_BUSES.map(bus => ({
-      ...bus,
-      features: bus.features || []
-    })), []
-  );
+  useEffect(() => {
+    if (!origin || !destination || !departureDate) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setFetchError('');
+
+    transportApi
+      .search({
+        transport_type: 'bus',
+        origin,
+        destination,
+        departure_date: departureDate,
+      })
+      .then((res) => {
+        setAllTrips(res.map(apiTripToTransportTrip));
+      })
+      .catch((err: unknown) => {
+        setFetchError(err instanceof Error ? err.message : 'خطا در دریافت اتوبوس‌ها');
+      })
+      .finally(() => setLoading(false));
+  }, [origin, destination, departureDate, passengers]);
 
   const { min: minPrice, max: maxPrice } = useMemo(() => getPriceBounds(allTrips), [allTrips]);
 
   useEffect(() => {
-    setPriceRange([minPrice, maxPrice]);
-  }, [minPrice, maxPrice]);
+    if (allTrips.length > 0) setPriceRange([minPrice, maxPrice]);
+  }, [minPrice, maxPrice, allTrips.length]);
 
   const toggleCompany = useCallback((company: string) => {
     setSelectedCompanies((prev) =>
@@ -80,7 +102,12 @@ function BusResultsContent() {
   }, [trips, minPrice]);
 
   const handleSelectTrip = (tripId: number) => {
-    const trip = allTrips.find((t) => t.id === tripId);
+    if (!isLoggedIn) {
+      const returnUrl = encodeURIComponent(`/booking?tripId=${tripId}&type=bus&passengers=${passengers || '1'}`);
+      router.push(`/login?returnUrl=${returnUrl}`);
+      return;
+    }
+    const trip = allTrips.find((t) => t._id === tripId);
     if (trip) {
       dispatch(selectTransport({ trip, transportType: 'bus' }));
     }
@@ -94,9 +121,16 @@ function BusResultsContent() {
     window.history.replaceState(null, '', `/bus/results?${params.toString()}`);
   }, []);
 
-  return (
-    <AuthGuard>
+  if (loading) {
+    return (
       <PageLayout showFooter={false} mobileTitle="نتایج اتوبوس">
+        <LoadingSpinner message="در حال جستجو" />
+      </PageLayout>
+    );
+  }
+
+  return (
+    <PageLayout showFooter={false} mobileTitle="نتایج اتوبوس">
         <div className="container mx-auto px-0 lg:px-4 py-4 lg:py-8 max-w-[1224px]">
         <div className="px-4 lg:px-0">
           <SearchSummary
@@ -121,7 +155,7 @@ function BusResultsContent() {
           basePrice={basePrice}
           onDateSelect={handleDateSelect}
           type="bus"
-          companies={BUS_COMPANIES}
+          companies={getUniqueCompanies(allTrips)}
         />
 
         <div className="flex gap-4 lg:gap-6 px-4 lg:px-0">
@@ -134,7 +168,7 @@ function BusResultsContent() {
             onCompanyToggle={toggleCompany}
             onPriceRangeChange={setPriceRange}
             type="bus"
-            companies={BUS_COMPANIES}
+            companies={getUniqueCompanies(allTrips)}
           />
 
           <div className="flex-1 lg:w-[80%] min-w-0">
@@ -146,9 +180,20 @@ function BusResultsContent() {
               onDateSelect={handleDateSelect}
             />
 
-            {noResults || trips.length === 0 ? (
+            {fetchError ? (
               <div className="bg-white border border-neutral-gray2 rounded-xl p-12 text-center">
-                <div className="text-5xl mb-4">🚌</div>
+                <div className="text-5xl mb-4">⚠️</div>
+                <p className="text-lg font-bold text-neutral-gray8 mb-2">خطا در دریافت اطلاعات</p>
+                <p className="text-sm text-neutral-gray6 mb-6">{fetchError}</p>
+                <button
+                  onClick={() => router.push('/bus')}
+                  className="bg-primary-blue text-white px-6 py-3 rounded-lg text-sm font-medium"
+                >
+                  جستجوی مجدد
+                </button>
+              </div>
+            ) : noResults || trips.length === 0 ? (
+              <div className="bg-white border border-neutral-gray2 rounded-xl p-12 text-center">
                 <p className="text-lg font-bold text-neutral-gray8 mb-2">اتوبوسی یافت نشد</p>
                 <p className="text-sm text-neutral-gray6 mb-6">لطفاً فیلترها یا تاریخ را تغییر دهید</p>
                 <button
@@ -161,7 +206,7 @@ function BusResultsContent() {
             ) : (
               <div className="space-y-4">
                 {trips.map((trip, index) => (
-                  <div key={trip.id}>
+                  <div key={trip._id}>
                     <div className="hidden lg:block">
                       <TransportCard trip={trip} index={index} onSelect={handleSelectTrip} type="bus" />
                     </div>
@@ -174,7 +219,6 @@ function BusResultsContent() {
         </div>
         </div>
       </PageLayout>
-    </AuthGuard>
   );
 }
 
@@ -185,4 +229,3 @@ export default function BusResultsPage() {
     </Suspense>
   );
 }
-
