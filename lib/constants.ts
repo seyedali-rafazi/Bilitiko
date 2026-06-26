@@ -36,16 +36,16 @@ export const SEARCH_HISTORY = [
 ];
 
 export const POPULAR_FLIGHTS: PopularFlight[] = [
-  { from: 'تهران', to: 'مشهد', fromCode: 'THR', toCode: 'MHD', price: '۱,۵۰۰,۰۰۰', image: '/flight-tehran-mashhad.svg' },
-  { from: 'مشهد', to: 'تهران', fromCode: 'MHD', toCode: 'THR', price: '۱,۵۰۰,۰۰۰', image: '/flight-mashhad-tehran.svg' },
-  { from: 'کیش', to: 'تهران', fromCode: 'KIH', toCode: 'THR', price: '۲,۵۰۰,۰۰۰', image: '/flight-kish-tehran.svg' },
-  { from: 'تهران', to: 'شیراز', fromCode: 'THR', toCode: 'SYZ', price: '۱,۷۰۰,۰۰۰', image: '/flight-tehran-shiraz.svg' },
+  { from: 'تهران', to: 'مشهد', fromCode: 'THR', toCode: 'MHD', price: '۱,۵۰۰,۰۰۰', image: '/flight-dubai.webp' },
+  { from: 'مشهد', to: 'تهران', fromCode: 'MHD', toCode: 'THR', price: '۱,۵۰۰,۰۰۰', image: '/flight-dubai.webp' },
+  { from: 'کیش', to: 'تهران', fromCode: 'KIH', toCode: 'THR', price: '۲,۵۰۰,۰۰۰', image: '/flight-dubai.webp' },
+  { from: 'تهران', to: 'شیراز', fromCode: 'THR', toCode: 'SYZ', price: '۱,۷۰۰,۰۰۰', image: '/flight-dubai.webp' },
 ];
 
 export const DESTINATIONS: Destination[] = [
-  { title: 'بهترین فصل شنا', subtitle: 'خرید بلیط پرواز‌های کیش', image: '/kish.svg', destinationCode: 'KIH' },
-  { title: 'سفر به ترکیه', subtitle: 'خرید بلیط پرواز‌های ترکیه', image: '/turkey.svg', destinationCode: 'IST' },
-  { title: 'شگفتی در صحرا', subtitle: 'خرید بلیط پرواز‌های دبی', image: '/dubai.svg', destinationCode: 'DXB' },
+  { title: 'بهترین فصل شنا', subtitle: 'خرید بلیط پرواز‌های کیش', image: '/kish.webp', destinationCode: 'KIH' },
+  { title: 'سفر به ترکیه', subtitle: 'خرید بلیط پرواز‌های ترکیه', image: '/turkey.webp', destinationCode: 'IST' },
+  { title: 'شگفتی در صحرا', subtitle: 'خرید بلیط پرواز‌های دبی', image: '/dubai.webp', destinationCode: 'DXB' },
 ];
 
 export const FLIGHT_TYPE_OPTIONS = [

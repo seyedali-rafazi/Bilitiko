@@ -6,6 +6,7 @@
 ![React](https://img.shields.io/badge/React-19.0-blue?style=for-the-badge&logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.5-blue?style=for-the-badge&logo=typescript)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38bdf8?style=for-the-badge&logo=tailwind-css)
+![Redux Toolkit](https://img.shields.io/badge/Redux_Toolkit-2.x-764abc?style=for-the-badge&logo=redux)
 
 ## 📋 فهرست مطالب
 
@@ -28,6 +29,7 @@
 - **تقویم شمسی** با date picker فارسی در تمام صفحات
 - **تم رنگی حرفه‌ای** با آبی، بنفش و سبز
 - **افکت‌های Hover** و تعاملات بصری جذاب
+- **نوار پیشرفت ناوبری** با NavigationProgress
 
 ### 🚀 قابلیت‌های اصلی
 
@@ -36,8 +38,9 @@
 - نمایش پروازها با جزئیات کامل
 - فیلتر بر اساس ایرلاین، قیمت، توقف
 - مرتب‌سازی (ارزان‌ترین، زودترین، دیرترین)
-- نوار تاریخ با نمایش قیمت 9 روز
+- نوار تاریخ با نمایش قیمت ۹ روز
 - نمایش هیستوگرام قیمت
+- لوگوی ایرلاین و خط زمانی مسیر پرواز
 
 #### 🚌 رزرو بلیط اتوبوس
 - جستجوی مسیرهای اتوبوسرانی
@@ -51,8 +54,15 @@
 - نمایش نوع کوپه و امکانات
 - انتخاب تاریخ با تقویم فارسی
 
+#### 🛡️ بیمه مسافرتی
+- انتخاب طرح بیمه با مقایسه پوشش‌ها
+- فرم اطلاعات بیمه با تقویم شمسی
+- صفحه نتایج، رزرو، پرداخت و تأییدیه
+
 #### 🔐 احراز هویت
 - سیستم ورود با شماره موبایل
+- ثبت‌نام با ایمیل و رمز عبور
+- بازیابی رمز عبور
 - تأیید با کد OTP (کد تست: 11111)
 - محافظت از صفحات با Auth Guard
 - بازگشت به صفحه مقصد پس از ورود
@@ -64,15 +74,28 @@
 - اعتبارسنجی تاریخ (min/max)
 - دکمه انتخاب سریع "امروز"
 
+#### 📄 بلیط دیجیتال
+- دانلود بلیط به صورت PDF با jsPDF
+- تولید QR Code یکتا برای هر بلیط
+- صفحه تأییدیه با کد پیگیری
+
+#### 💳 کیف پول
+- نمایش موجودی کیف پول
+- شارژ کیف پول با مبالغ سریع
+- تاریخچه تراکنش‌ها
+
 ### ⚡ قابلیت‌های پیشرفته
 
 - 🔍 **جستجوی هوشمند** با اعتبارسنجی فیلدها
 - 📊 **فیلترهای پیشرفته** با هیستوگرام قیمت
 - 📱 **Bottom Sheet** برای موبایل
 - 🎯 **تجربه کاربری عالی** با فیدبک‌های بصری
-- 💾 **Local Storage** برای ذخیره جستجوها
-- 🔄 **State Management** با React Hooks
+- 💾 **Local Storage** برای ذخیره جستجوها و رزروها
+- 🔄 **State Management** با Redux Toolkit
 - 🎨 **Shadcn UI Components** برای کامپوننت‌های استاندارد
+- 🍞 **Toast Notifications** برای اطلاع‌رسانی به کاربر
+- 🌀 **Loading Spinner و Splash Screen** برای تجربه کاربری بهتر
+- 📡 **API Layer** با `lib/api.ts` برای ارتباط با سرور
 
 ## 🚀 نصب و راه‌اندازی
 
@@ -135,12 +158,20 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 - **Radix UI** - کامپوننت‌های Accessible و Headless
 - **Custom CSS** - برای انیمیشن‌ها و افکت‌های خاص
 - **Glass Morphism** - افکت شیشه‌ای مدرن
+- **Lucide React** - آیکون‌های مدرن SVG
+
+### State Management
+- **Redux Toolkit 2.x** - مدیریت State با bookingSlice
+- **React Redux 9.x** - اتصال React با Redux
 
 ### Libraries & Tools
 - **React Icons 5.3** - آیکون‌های زیبا و متنوع
 - **Framer Motion 11.5** - انیمیشن‌های پیشرفته
 - **date-fns 3.6** - مدیریت تاریخ میلادی
 - **date-fns-jalali 3.6** - پشتیبانی از تاریخ شمسی
+- **jsPDF 4.x** - تولید فایل PDF برای بلیط دیجیتال
+- **jspdf-autotable 5.x** - جداول در PDF
+- **QRCode 1.5** - تولید QR Code
 - **clsx & tailwind-merge** - مدیریت کلاس‌های CSS
 - **class-variance-authority** - مدیریت Variants
 
@@ -151,7 +182,10 @@ aircraft-tickets/
 ├── app/                          # صفحات Next.js (App Router)
 │   ├── page.tsx                  # صفحه اصلی
 │   ├── layout.tsx                # لایه اصلی
+│   ├── loading.tsx               # صفحه لودینگ
+│   ├── not-found.tsx             # صفحه 404
 │   ├── globals.css               # استایل‌های سراسری
+│   ├── icon.svg                  # آیکون سایت
 │   ├── flights/                  # پروازها
 │   │   └── page.tsx
 │   ├── bus/                      # اتوبوس
@@ -167,90 +201,161 @@ aircraft-tickets/
 │   ├── payment/                  # پرداخت
 │   │   ├── page.tsx
 │   │   ├── success/
+│   │   │   └── page.tsx
 │   │   └── failed/
+│   │       └── page.tsx
+│   ├── confirmation/             # تأییدیه رزرو + دانلود PDF
+│   │   └── page.tsx
+│   ├── insurance/                # بیمه مسافرتی
+│   │   ├── page.tsx
+│   │   ├── results/
+│   │   │   └── page.tsx
+│   │   ├── booking/
+│   │   │   └── page.tsx
+│   │   ├── payment/
+│   │   │   └── page.tsx
+│   │   └── confirmation/
+│   │       └── page.tsx
 │   ├── login/                    # ورود
+│   │   └── page.tsx
+│   ├── register/                 # ثبت‌نام
+│   │   └── page.tsx
+│   ├── forgot-password/          # بازیابی رمز عبور
 │   │   └── page.tsx
 │   ├── profile/                  # پروفایل
 │   │   └── page.tsx
-│   └── insurance/                # بیمه
-│       ├── page.tsx
-│       ├── results/
-│       ├── booking/
-│       └── payment/
+│   ├── account/                  # حساب کاربری (موبایل)
+│   │   └── page.tsx
+│   ├── wallet/                   # کیف پول
+│   │   └── page.tsx
+│   ├── about/                    # درباره ما
+│   │   └── page.tsx
+│   ├── contact/                  # تماس با ما
+│   │   └── page.tsx
+│   ├── terms/                    # قوانین و مقررات
+│   │   └── page.tsx
+│   ├── guide/                    # راهنمای خرید
+│   │   └── page.tsx
+│   ├── refund/                   # استرداد بلیط
+│   │   └── page.tsx
+│   ├── other/                    # سایر خدمات
+│   │   └── page.tsx
+│   └── 405/                      # خطای 405
+│       └── page.tsx
 ├── components/                   # کامپوننت‌های React
-│   ├── auth/                     # احراز هویت
+│   ├── auth/
 │   │   └── AuthGuard.tsx
-│   ├── flights/                  # پروازها
+│   ├── flights/
+│   │   ├── AirlineLogo.tsx
 │   │   ├── FlightCard.tsx
 │   │   ├── FlightFiltersContent.tsx
 │   │   ├── FlightFiltersSidebar.tsx
-│   │   ├── FlightToolbar.tsx
 │   │   ├── FlightResultsHeader.tsx
-│   │   └── MobileFlightCard.tsx
-│   ├── transport/                # اتوبوس و قطار
+│   │   ├── FlightRouteTimeline.tsx
+│   │   ├── FlightToolbar.tsx
+│   │   ├── MobileFlightCard.tsx
+│   │   └── SearchSummary.tsx
+│   ├── transport/
+│   │   ├── MobileTransportCard.tsx
 │   │   ├── TransportCard.tsx
 │   │   ├── TransportFiltersContent.tsx
 │   │   ├── TransportFiltersSidebar.tsx
-│   │   ├── TransportToolbar.tsx
 │   │   ├── TransportResultsHeader.tsx
-│   │   └── MobileTransportCard.tsx
-│   ├── booking/                  # رزرو
+│   │   └── TransportToolbar.tsx
+│   ├── booking/
 │   │   ├── PassengerForm.tsx
 │   │   └── ContactForm.tsx
-│   ├── payment/                  # پرداخت
+│   ├── payment/
+│   │   ├── OrderSummary.tsx
 │   │   ├── PaymentForm.tsx
-│   │   └── OrderSummary.tsx
-│   ├── home/                     # صفحه اصلی
+│   │   └── PaymentMethodIcon.tsx
+│   ├── home/
+│   │   ├── AdvantagesSection.tsx
+│   │   ├── DestinationCards.tsx
+│   │   ├── FAQSection.tsx
 │   │   ├── FlightSearchBox.tsx
 │   │   ├── PopularFlights.tsx
-│   │   └── DestinationCards.tsx
-│   ├── search/                   # جستجو
+│   │   └── SearchHistory.tsx
+│   ├── search/
+│   │   ├── MobileTripSearchBox.tsx
+│   │   ├── TransportResultCard.tsx
 │   │   ├── TripSearchBox.tsx
-│   │   └── MobileTripSearchBox.tsx
-│   ├── layout/                   # لایه
-│   │   ├── Navbar.tsx
+│   │   └── TripSearchSummary.tsx
+│   ├── layout/
+│   │   ├── AppShell.tsx
+│   │   ├── AppSplash.tsx
 │   │   ├── Footer.tsx
+│   │   ├── Hero.tsx
+│   │   ├── Navbar.tsx
+│   │   ├── NavigationProgress.tsx
+│   │   ├── PageHeader.tsx
 │   │   └── PageLayout.tsx
-│   ├── mobile/                   # موبایل
+│   ├── mobile/
 │   │   ├── BottomSheet.tsx
 │   │   ├── MobileHeader.tsx
-│   │   └── MobileSearchBox.tsx
-│   ├── ui/                       # UI Components
-│   │   ├── PersianDatePicker.tsx
+│   │   ├── MobileMenu.tsx
+│   │   ├── MobileSearchBox.tsx
+│   │   └── StepIndicator.tsx
+│   ├── shared/
+│   │   ├── ContentSection.tsx
+│   │   └── Logo.tsx
+│   ├── ui/
+│   │   ├── Accordion.tsx
+│   │   ├── Badge.tsx
 │   │   ├── Button.tsx
+│   │   ├── Card.tsx
 │   │   ├── Input.tsx
+│   │   ├── LoadingSpinner.tsx
 │   │   ├── Modal.tsx
+│   │   ├── PersianDatePicker.tsx
+│   │   ├── Select.tsx
+│   │   ├── SuccessAnimation.tsx
+│   │   ├── Tabs.tsx
 │   │   └── shadcn/               # Shadcn Components
-│   └── providers/                # Context Providers
-│       └── AuthProvider.tsx
-├── lib/                          # Utilities
-│   ├── types.ts                  # TypeScript Types
+│   └── providers/
+│       ├── AuthProvider.tsx
+│       ├── StoreProvider.tsx
+│       └── ToastProvider.tsx
+├── lib/                          # Utilities & Services
+│   ├── api.ts                    # لایه API
+│   ├── api-transforms.ts         # تبدیل داده‌های API
+│   ├── booking-storage.ts        # ذخیره‌سازی رزرو
+│   ├── card-format.ts            # فرمت کارت بانکی
 │   ├── constants.ts              # ثابت‌ها
-│   ├── mock-data.ts              # داده‌های نمونه
+│   ├── error-messages.ts         # پیام‌های خطا به فارسی
 │   ├── flight-utils.ts           # توابع پرواز
-│   ├── transport-utils.ts        # توابع حمل‌ونقل
+│   ├── insurance-data.ts         # داده‌های بیمه
+│   ├── mobile-nav.ts             # پیمایش موبایل
+│   ├── mock-data.ts              # داده‌های نمونه
+│   ├── pdf-generator.ts          # تولید PDF بلیط
 │   ├── search-utils.ts           # توابع جستجو
 │   ├── session.ts                # مدیریت Session
-│   └── utils.ts                  # توابع عمومی
+│   ├── transport-utils.ts        # توابع حمل‌ونقل
+│   ├── types.ts                  # TypeScript Types
+│   ├── utils.ts                  # توابع عمومی
+│   ├── store/                    # Redux Store
+│   │   ├── bookingSlice.ts
+│   │   ├── hooks.ts
+│   │   └── index.ts
+│   └── figma/
+│       └── manifest.json
 ├── hooks/                        # Custom Hooks
 │   ├── useAuth.ts
 │   └── useFlightSearch.ts
+├── scripts/                      # اسکریپت‌های ابزاری
+│   └── fetch-figma.mjs
 ├── public/                       # فایل‌های استاتیک
 │   ├── hero-bg.svg
 │   └── *.svg
-├── docs/                         # مستندات
-│   ├── TRANSPORT_UPDATES_SUMMARY.md
-│   ├── AUTH_GUARD_IMPLEMENTATION.md
-│   └── PERSIAN_DATEPICKER_IMPLEMENTATION.md
-├── package.json                  # وابستگی‌ها
-├── tsconfig.json                 # تنظیمات TypeScript
-├── tailwind.config.ts            # تنظیمات Tailwind
-├── next.config.js                # تنظیمات Next.js
-├── components.json               # تنظیمات Shadcn
-├── README.md                     # این فایل
-├── INSTALLATION.md               # راهنمای نصب
-├── install.bat                   # نصب خودکار (ویندوز)
-└── run.bat                       # اجرای خودکار (ویندوز)
+├── package.json
+├── tsconfig.json
+├── tailwind.config.ts
+├── next.config.js
+├── components.json
+├── README.md
+├── INSTALLATION.md
+├── install.bat
+└── run.bat
 ```
 
 ## 📱 صفحات و قابلیت‌ها
@@ -276,106 +381,104 @@ aircraft-tickets/
   - محدوده قیمت با هیستوگرام
   - انتخاب ایرلاین
   - تعداد توقف
-- مرتب‌سازی:
-  - ارزان‌ترین
-  - زودترین پرواز
-  - دیرترین پرواز
-  - کوتاه‌ترین
-- نوار تاریخ با قیمت 9 روز
-- لیست پروازها با کارت‌های جذاب
-- نمایش جزئیات (زمان، مدت، قیمت، امکانات)
+- مرتب‌سازی: ارزان‌ترین، زودترین، دیرترین، کوتاه‌ترین
+- نوار تاریخ با قیمت ۹ روز
+- لیست پروازها با لوگوی ایرلاین و خط زمانی مسیر
 - دکمه انتخاب پرواز
 
 ### 3. صفحه اتوبوس (/bus)
-- فرم جستجوی اتوبوس
-- انتخاب مبدا و مقصد
-- تقویم شمسی
-- انتخاب تعداد مسافر
+- فرم جستجوی اتوبوس با تقویم شمسی
 
 ### 4. نتایج اتوبوس (/bus/results) 🔐
 **نیاز به ورود دارد**
 
 - فیلترهای پیشرفته (شرکت، قیمت)
-- مرتب‌سازی (ارزان‌ترین، زودترین، دیرترین)
-- نوار تاریخ با قیمت
 - نمایش امکانات (VIP، Wi-Fi، پذیرایی)
-- کارت‌های اتوبوس با جزئیات کامل
 
 ### 5. صفحه قطار (/train)
-- فرم جستجوی قطار
-- انتخاب مبدا و مقصد
-- تقویم شمسی
-- انتخاب تعداد مسافر
+- فرم جستجوی قطار با تقویم شمسی
 
 ### 6. نتایج قطار (/train/results) 🔐
 **نیاز به ورود دارد**
 
 - فیلترهای پیشرفته (شرکت، قیمت)
-- مرتب‌سازی (ارزان‌ترین، زودترین، دیرترین)
-- نوار تاریخ با قیمت
 - نمایش نوع کوپه و امکانات
-- کارت‌های قطار با جزئیات کامل
 
 ### 7. صفحه ورود (/login)
 - ورود با شماره موبایل
 - دریافت کد تأیید (کد تست: **11111**)
-- تکمیل اطلاعات (نام، نام خانوادگی)
 - نمایش پیشرفت با Step Indicator
 - بازگشت به صفحه مقصد پس از ورود
 
-### 8. صفحه رزرو (/booking)
+### 8. صفحه ثبت‌نام (/register)
+- ثبت‌نام با نام، نام خانوادگی، ایمیل و رمز عبور
+- اتصال به API Layer
+
+### 9. بازیابی رمز عبور (/forgot-password)
+- دریافت لینک بازیابی از طریق ایمیل
+
+### 10. صفحه رزرو (/booking)
 - فرم اطلاعات مسافران
 - تقویم شمسی برای تاریخ تولد
 - انتخاب جنسیت
 - اطلاعات تماس
-- قوانین و مقررات
 
-### 9. صفحه پرداخت (/payment)
+### 11. صفحه پرداخت (/payment)
 - انتخاب روش پرداخت (کارت، کیف پول)
-- فرم اطلاعات کارت
+- فرمت خودکار شماره کارت
 - خلاصه سفارش
 - دکمه پرداخت امن
 
-### 10. صفحه بیمه (/insurance)
-- انتخاب طرح بیمه
-- مقایسه پوشش‌ها
-- فرم اطلاعات بیمه
-- تقویم شمسی برای تاریخ شروع/پایان
+### 12. صفحه تأییدیه (/confirmation)
+- کد پیگیری یکتا (BL-XXXXXXXX)
+- دانلود بلیط به صورت PDF
+- QR Code یکتا برای هر بلیط
 
-### 11. صفحه پروفایل (/profile)
-- اطلاعات کاربر
-- تاریخچه سفرها
-- مدیریت حساب
+### 13. بیمه مسافرتی (/insurance)
+- انتخاب طرح بیمه با مقایسه پوشش‌ها (/insurance)
+- نتایج بیمه (/insurance/results)
+- رزرو بیمه (/insurance/booking)
+- پرداخت بیمه (/insurance/payment)
+- تأییدیه بیمه (/insurance/confirmation)
+
+### 14. صفحه پروفایل (/profile)
+- اطلاعات کاربر و تاریخچه سفرها
+
+### 15. حساب کاربری (/account) 🔐
+- منوی کامل حساب کاربری (موبایل فرست)
+- دسترسی به پروفایل، کیف پول، سفرها و خروج
+
+### 16. کیف پول (/wallet) 🔐
+- نمایش موجودی
+- شارژ با مبالغ سریع یا دستی
+- تاریخچه تراکنش‌ها
+
+### 17. صفحات اطلاعاتی
+- **درباره ما** (/about) - معرفی شرکت
+- **تماس با ما** (/contact) - فرم ارتباطی
+- **قوانین و مقررات** (/terms)
+- **راهنمای خرید** (/guide) - مراحل خرید بلیط
+- **استرداد بلیط** (/refund) - شرایط و مراحل استرداد
+- **سایر خدمات** (/other) - هتل، اجاره خودرو، تور و...
 
 ## 📚 مستندات
 
-پروژه شامل مستندات کامل در پوشه اصلی است:
+پروژه شامل مستندات در پوشه اصلی است:
 
-### 1. TRANSPORT_UPDATES_SUMMARY.md
-- جزئیات کامل به‌روزرسانی صفحات اتوبوس و قطار
-- لیست کامپوننت‌های ایجاد شده
-- ویژگی‌های پیاده‌سازی شده
-- راهنمای تست
-
-### 2. AUTH_GUARD_IMPLEMENTATION.md
-- نحوه کار سیستم احراز هویت
-- جزئیات AuthGuard
-- فلوی ورود کاربر
-- کد تست OTP (11111)
-- نکات امنیتی
-
-### 3. PERSIAN_DATEPICKER_IMPLEMENTATION.md
-- جزئیات کامل تقویم شمسی
-- نحوه استفاده
-- Props و API
-- مثال‌های کاربردی
-- ویژگی‌های پیشرفته
-
-### 4. INSTALLATION.md
+### 1. INSTALLATION.md
 - راهنمای نصب گام به گام
 - حل مشکلات رایج
 - تنظیمات PowerShell
-- نکات مهم
+
+### 2. TRANSPORT_UPDATES_SUMMARY.md
+- جزئیات به‌روزرسانی صفحات اتوبوس و قطار
+
+### 3. AUTH_GUARD_IMPLEMENTATION.md
+- نحوه کار سیستم احراز هویت
+- فلوی ورود کاربر و کد تست OTP
+
+### 4. PERSIAN_DATEPICKER_IMPLEMENTATION.md
+- جزئیات کامل تقویم شمسی، Props و API
 
 ## 🔧 دستورات
 
@@ -407,16 +510,16 @@ npm run figma:sync
 --primary-shade1: #1e40af;    /* آبی تیره */
 
 /* Neutral Colors */
---neutral-gray1: #f9fafb;     /* خاکستری خیلی روشن */
---neutral-gray2: #f3f4f6;     /* خاکستری روشن */
---neutral-gray3: #e5e7eb;     /* خاکستری */
---neutral-gray6: #6b7280;     /* خاکستری متوسط */
---neutral-gray8: #1f2937;     /* خاکستری تیره */
+--neutral-gray1: #f9fafb;
+--neutral-gray2: #f3f4f6;
+--neutral-gray3: #e5e7eb;
+--neutral-gray6: #6b7280;
+--neutral-gray8: #1f2937;
 
 /* Status Colors */
---status-success: #10b981;    /* سبز (موفق) */
---status-error: #ef4444;      /* قرمز (خطا) */
---status-warning: #f59e0b;    /* نارنجی (هشدار) */
+--status-success: #10b981;
+--status-error: #ef4444;
+--status-warning: #f59e0b;
 ```
 
 ### انیمیشن‌ها
@@ -425,7 +528,7 @@ npm run figma:sync
 - **Slide Up** - حرکت کارت‌ها از پایین
 - **Scale In** - بزرگ شدن مودال‌ها
 - **Stagger** - تأخیر متوالی در لیست‌ها
-- **Hover Effects** - تعاملات موس
+- **NavigationProgress** - نوار پیشرفت بارگذاری صفحه
 
 ### فونت
 
@@ -444,52 +547,33 @@ npm run figma:sync
 - **Metadata** - تگ‌های متا مناسب
 - **Semantic HTML** - استفاده از تگ‌های معنادار
 - **Alt Tags** - توضیحات تصاویر
-- **Structured Data** - داده‌های ساختاریافته
 
 ### Accessibility
 - **ARIA Labels** - برچسب‌های دسترسی
 - **Keyboard Navigation** - پیمایش با کیبورد
 - **Focus Management** - مدیریت فوکوس
-- **Screen Reader Support** - پشتیبانی از صفحه‌خوان
 
 ### Security
 - **Input Validation** - اعتبارسنجی ورودی‌ها
-- **XSS Protection** - محافظت در برابر XSS
-- **CSRF Protection** - محافظت در برابر CSRF
-- **Secure Storage** - ذخیره‌سازی امن
+- **Auth Guard** - محافظت از مسیرهای خصوصی
+- **Secure Storage** - ذخیره‌سازی امن Session
 
 ## 🧪 تست
 
 ### تست دستی
 
-1. **جستجوی پرواز**
-   - انتخاب مبدا و مقصد
-   - انتخاب تاریخ با تقویم فارسی
-   - جستجو و مشاهده نتایج
-
-2. **فیلتر و مرتب‌سازی**
-   - اعمال فیلترهای مختلف
-   - تغییر مرتب‌سازی
-   - انتخاب تاریخ از نوار تاریخ
-
-3. **احراز هویت**
-   - ورود با شماره موبایل
-   - وارد کردن کد 11111
-   - تکمیل اطلاعات
-   - بازگشت به صفحه مقصد
-
-4. **رزرو**
-   - انتخاب پرواز/اتوبوس/قطار
-   - پر کردن فرم مسافران
-   - انتخاب تاریخ تولد با تقویم
-   - پرداخت
+1. **جستجوی پرواز** — انتخاب مبدا، مقصد، تاریخ و جستجو
+2. **فیلتر و مرتب‌سازی** — اعمال فیلترهای مختلف
+3. **احراز هویت** — ورود با موبایل، کد **11111**، تکمیل اطلاعات
+4. **رزرو کامل** — انتخاب پرواز → فرم مسافران → پرداخت → تأییدیه
+5. **دانلود PDF** — در صفحه تأییدیه، دانلود بلیط دیجیتال
+6. **بیمه** — جستجو → انتخاب طرح → پرداخت → تأییدیه
 
 ### تست موبایل
-
-- تست روی دستگاه‌های مختلف
-- تست Bottom Sheet
+- تست Bottom Sheet و MobileMenu
 - تست تاچ و اسکرول
 - تست تقویم موبایل
+- تست صفحه Account (منوی موبایل)
 
 ## 📝 نکات مهم
 
@@ -503,11 +587,8 @@ npm run figma:sync
 - ✅ سیستم احراز هویت واقعی با SMS
 - ✅ درگاه پرداخت واقعی
 - ✅ پایگاه داده برای ذخیره رزروها
-- ✅ سیستم مدیریت محتوا (CMS)
 - ✅ امنیت بیشتر و اعتبارسنجی سمت سرور
 - ✅ سیستم لاگ و مانیتورینگ
-- ✅ Backup و Recovery
-- ✅ Load Balancing
 - ✅ CDN برای فایل‌های استاتیک
 
 ### 🔐 کد تست OTP
@@ -517,6 +598,10 @@ npm run figma:sync
 ### 🗓️ تقویم شمسی
 
 تمام تاریخ‌ها در فرمت ISO (YYYY-MM-DD) ذخیره می‌شوند اما با تقویم شمسی نمایش داده می‌شوند.
+
+### 📄 PDF بلیط
+
+بلیط دیجیتال با استفاده از jsPDF تولید می‌شود و شامل QR Code یکتا، اطلاعات پرواز و مسافران است.
 
 ## 🤝 مشارکت
 
@@ -533,7 +618,6 @@ npm run figma:sync
 - از TypeScript استفاده کنید
 - کد را مستند کنید
 - از Prettier برای فرمت کد استفاده کنید
-- تست‌های لازم را اضافه کنید
 - از Conventional Commits استفاده کنید
 
 ## 📄 مجوز
@@ -551,6 +635,8 @@ npm run figma:sync
 - [Tailwind CSS](https://tailwindcss.com)
 - [Shadcn UI](https://ui.shadcn.com)
 - [TypeScript](https://www.typescriptlang.org)
+- [Redux Toolkit](https://redux-toolkit.js.org)
+- [jsPDF](https://jspdf.io)
 
 ## 📞 پشتیبانی
 
@@ -568,5 +654,5 @@ npm run figma:sync
 - `AUTH_GUARD_IMPLEMENTATION.md` - سیستم احراز هویت
 - `PERSIAN_DATEPICKER_IMPLEMENTATION.md` - تقویم شمسی
 
-**نسخه:** 1.0.0  
-**آخرین به‌روزرسانی:** 2026-06-21
+**نسخه:** 2.0.0  
+**آخرین به‌روزرسانی:** 2025-07-16

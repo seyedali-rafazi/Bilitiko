@@ -19,14 +19,19 @@ interface PopularFlightItem {
   image: string;
 }
 
+const DEFAULT_IMAGE = '/flight-dubai.webp';
+
 function mapApiToItem(f: ApiPopularFlight): PopularFlightItem {
+  const fallback = FALLBACK_FLIGHTS.find(
+    (s) => s.fromCode === f.from_code && s.toCode === f.to_code
+  );
   return {
     from: f.from_city,
     to: f.to_city,
     fromCode: f.from_code,
     toCode: f.to_code,
     price: f.price,
-    image: f.image || '',
+    image: f.image || fallback?.image || DEFAULT_IMAGE,
   };
 }
 
@@ -70,6 +75,7 @@ export default function PopularFlights() {
     );
   };
 
+  
   return (
     <div className="container mx-auto px-4 mb-12 max-w-[1224px]">
       <div className="mb-6 lg:mb-8">

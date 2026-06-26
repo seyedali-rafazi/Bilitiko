@@ -1,8 +1,7 @@
 export const MOBILE_MENU_LOGGED_OUT = [
   { label: 'صفحه اصلی', href: '/' },
   { label: 'بلیط اتوبوس', href: '/bus' },
-  { label: 'خرید بلیط قطار', href: '/train' },
-  { label: 'ورود / ثبت نام', href: '/login' },
+  { label: 'بلیط قطار', href: '/train' },
   { label: 'بیمه مسافرتی', href: '/insurance' },
   { label: 'درباره ما', href: '/about' },
   { label: 'تماس با ما', href: '/contact' },
@@ -13,11 +12,9 @@ export const MOBILE_MENU_LOGGED_OUT = [
 export const MOBILE_MENU_LOGGED_IN = [
   { label: 'صفحه اصلی', href: '/' },
   { label: 'بلیط اتوبوس', href: '/bus' },
-  { label: 'خرید بلیط قطار', href: '/train' },
-  { label: 'حساب کاربری', href: '/account' },
+  { label: 'بلیط قطار', href: '/train' },
   { label: 'بلیط‌های من', href: '/profile?tab=tickets' },
   { label: 'سفرهای من', href: '/profile?tab=trips' },
-  { label: 'کیف پول', href: '/wallet' },
   { label: 'بیمه مسافرتی', href: '/insurance' },
   { label: 'پشتیبانی', href: '/contact' },
 ];
