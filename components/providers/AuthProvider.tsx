@@ -13,6 +13,7 @@ import {
 import { useRouter } from "next/navigation";
 import type { UserSession } from "@/lib/types";
 import { authApi, type AuthUser } from "@/lib/api";
+import { clearCsrfToken } from "@/lib/csrf";
 import { clearUser, getUser, setUser } from "@/lib/session";
 
 interface AuthContextValue {
@@ -58,6 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch {
       if (mounted.current) {
+        clearCsrfToken();
         clearUser();
         setUserState(null);
       }
@@ -102,6 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Even if the network call fails, clear local state so the UI
       // reflects "logged out" — the cookies will simply expire naturally.
     }
+    clearCsrfToken();
     clearUser();
     setUserState(null);
     router.push("/");

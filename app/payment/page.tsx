@@ -15,7 +15,7 @@ import {
   resolveBookingState,
 } from '@/lib/booking-storage';
 import { useAppSelector } from '@/lib/store/hooks';
-import { addTicket, generateTrackingCode } from '@/lib/session';
+import { addTicket } from '@/lib/session';
 import { bookingsApi } from '@/lib/api';
 
 export default function PaymentPage() {
@@ -28,6 +28,7 @@ export default function PaymentPage() {
   const [expiry, setExpiry] = useState('');
   const [processing, setProcessing] = useState(false);
   const [ready, setReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const bookingData = useMemo(() => bookingStateToData(bookingState), [bookingState]);
   const resolved = useMemo(() => resolveBookingState(bookingState), [bookingState]);
@@ -48,6 +49,7 @@ export default function PaymentPage() {
 
     setProcessing(true);
     completingPayment.current = true;
+    setError(null);
 
     try {
       const passengers = bookingState.passengers.map((p) => ({
@@ -86,17 +88,15 @@ export default function PaymentPage() {
       if (ticket) addTicket(ticket);
 
       router.push(`/payment/success?code=${trackingCode}&amount=${totalPrice}`);
-    } catch {
-      // Fall back to local booking on API error (network issues, etc.)
-      const trackingCode = generateTrackingCode('BL');
-      const ticket = createTicketFromBooking(bookingData, trackingCode);
-      if (ticket) {
-        addTicket(ticket);
-        router.push(`/payment/success?code=${trackingCode}&amount=${ticket.price}`);
-      } else {
-        completingPayment.current = false;
-        setProcessing(false);
-      }
+    } catch (err: unknown) {
+      completingPayment.current = false;
+      setProcessing(false);
+      const message =
+        err instanceof Error
+          ? err.message
+          : "خطا در ثبت رزرو. لطفاً دوباره تلاش کنید.";
+      setError(message);
+      router.push("/payment/failed");
     }
   };
 
@@ -121,6 +121,12 @@ export default function PaymentPage() {
       <div className="container mx-auto px-4 pb-8 max-w-7xl">
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
+            {error && (
+              <div className="bg-status-errorBg border border-status-error/20 rounded-xl p-4 text-center">
+                <p className="text-sm text-status-error">{error}</p>
+              </div>
+            )}
+
             <form onSubmit={handlePayment} noValidate className="space-y-6">
               <PaymentMethodSelector paymentMethod={paymentMethod} onChange={setPaymentMethod} />
 

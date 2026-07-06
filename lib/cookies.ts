@@ -9,7 +9,8 @@
  * The backend also sets one *non*-httpOnly cookie, `csrf_token`, specifically
  * so the frontend can read it and echo it back as an `X-CSRF-Token` header on
  * state-changing requests (double-submit cookie pattern, see `lib/api.ts`).
- * `getCookie` below exists to support that.
+ * When the frontend and API are on different origins, that cookie is not
+ * visible in `document.cookie` — use `lib/csrf.ts` instead.
  */
 
 export function getCookie(name: string): string | null {

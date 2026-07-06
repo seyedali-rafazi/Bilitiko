@@ -4,6 +4,7 @@
  */
 
 import { getCookie } from "./cookies";
+import { clearCsrfToken, getCsrfToken, setCsrfToken } from "./csrf";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
@@ -34,7 +35,7 @@ async function doFetch(path: string, options: RequestInit): Promise<Response> {
   };
 
   if (MUTATING_METHODS.has(method)) {
-    const csrfToken = getCookie(CSRF_COOKIE);
+    const csrfToken = getCsrfToken();
     if (csrfToken) headers[CSRF_HEADER] = csrfToken;
   }
 
@@ -66,6 +67,17 @@ const AUTH_ENDPOINTS_WITHOUT_RETRY = [
   "/api/v1/users/login",
   "/api/v1/users/refresh",
 ];
+
+function captureCsrfFromAuthResponse(data: unknown): void {
+  if (
+    data &&
+    typeof data === "object" &&
+    "csrf_token" in data &&
+    typeof (data as { csrf_token?: unknown }).csrf_token === "string"
+  ) {
+    setCsrfToken((data as { csrf_token: string }).csrf_token);
+  }
+}
 
 async function request<T>(
   path: string,
@@ -99,7 +111,9 @@ async function request<T>(
 
   // Some endpoints return 204 No Content
   const text = await res.text();
-  return text ? (JSON.parse(text) as T) : ({} as T);
+  const data = text ? (JSON.parse(text) as T) : ({} as T);
+  captureCsrfFromAuthResponse(data);
+  return data;
 }
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
@@ -110,6 +124,7 @@ export interface AuthUser {
   first_name: string;
   last_name: string;
   phone?: string;
+  csrf_token?: string;
 }
 
 /** POST /api/v1/users/register  →  user object (201) */
@@ -140,7 +155,12 @@ export const authApi = {
 
   /** POST /api/v1/users/logout — clears all auth cookies server-side. */
   logout: () =>
-    request<{ detail: string }>("/api/v1/users/logout", { method: "POST" }),
+    request<{ detail: string }>("/api/v1/users/logout", { method: "POST" }).then(
+      (res) => {
+        clearCsrfToken();
+        return res;
+      },
+    ),
 
   getProfile: () => request<AuthUser>("/api/v1/users/me"),
 
