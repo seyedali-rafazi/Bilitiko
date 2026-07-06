@@ -46,16 +46,13 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res = await authApi.login(email.trim(), password);
-      loginWithApi(
-        {
-          firstName: res.user?.first_name ?? "",
-          lastName: res.user?.last_name ?? "",
-          phone: res.user?.phone ?? "",
-          email: res.user?.email ?? email.trim(),
-          loggedInAt: new Date().toISOString(),
-        },
-        { access: res.access_token, refresh: res.refresh_token },
-      );
+      loginWithApi({
+        firstName: res.first_name ?? "",
+        lastName: res.last_name ?? "",
+        phone: res.phone ?? "",
+        email: res.email ?? email.trim(),
+        loggedInAt: new Date().toISOString(),
+      });
       success("خوش آمدید! ورود با موفقیت انجام شد.");
       setDone(true);
       setTimeout(() => router.push(returnUrl), 1200);

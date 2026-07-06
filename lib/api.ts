@@ -3,70 +3,88 @@
  * Base URL is read from NEXT_PUBLIC_API_URL env var.
  */
 
-import { getCookie, setCookie, removeCookie } from "./cookies";
-import { decodeJwtExpiry } from "./jwt";
+import { getCookie } from "./cookies";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
-// ─── Token helpers ────────────────────────────────────────────────────────────
+// ─── Auth model ───────────────────────────────────────────────────────────────
 //
-// Tokens are stored in cookies rather than localStorage so the browser can
-// enforce `Secure` (HTTPS-only) and `SameSite` and auto-expire them once the
-// underlying JWT expires. NOTE: these are still plain, JS-readable cookies
-// (not `HttpOnly`), since only a server response can set an `HttpOnly`
-// cookie — see the security note in `lib/cookies.ts` for what it would take
-// to close that gap.
+// Access/refresh tokens are issued by the backend as `HttpOnly; Secure`
+// cookies (see `bilitiko-backend`'s `core/security.py`). They are NEVER
+// exposed to JavaScript, so this client has no `getAccessToken`/`setTokens`
+// functions anymore — the browser attaches the cookies automatically to
+// every request as long as we use `credentials: 'include'`.
+//
+// The backend also sets a separate, readable `csrf_token` cookie. We echo
+// its value back as an `X-CSRF-Token` header on state-changing requests
+// (double-submit cookie pattern) so a third-party site can't rely on the
+// browser silently attaching our auth cookie to a forged request.
 
-const ACCESS_TOKEN_COOKIE = "bilito-access-token";
-const REFRESH_TOKEN_COOKIE = "bilito-refresh-token";
-
-// Fallbacks used only if the JWT's `exp` claim can't be read.
-const DEFAULT_ACCESS_MAX_AGE = 60 * 60; // 1 hour
-const DEFAULT_REFRESH_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
-
-export function getAccessToken(): string | null {
-  return getCookie(ACCESS_TOKEN_COOKIE);
-}
-
-export function setTokens(access: string, refresh: string) {
-  const now = Math.floor(Date.now() / 1000);
-  const accessExp = decodeJwtExpiry(access);
-  const refreshExp = decodeJwtExpiry(refresh);
-
-  setCookie(ACCESS_TOKEN_COOKIE, access, {
-    maxAgeSeconds: accessExp
-      ? Math.max(0, accessExp - now)
-      : DEFAULT_ACCESS_MAX_AGE,
-    sameSite: "Strict",
-  });
-  setCookie(REFRESH_TOKEN_COOKIE, refresh, {
-    maxAgeSeconds: refreshExp
-      ? Math.max(0, refreshExp - now)
-      : DEFAULT_REFRESH_MAX_AGE,
-    sameSite: "Strict",
-  });
-}
-
-export function clearTokens() {
-  removeCookie(ACCESS_TOKEN_COOKIE);
-  removeCookie(REFRESH_TOKEN_COOKIE);
-}
-
-export function getRefreshToken(): string | null {
-  return getCookie(REFRESH_TOKEN_COOKIE);
-}
+const CSRF_COOKIE = "csrf_token";
+const CSRF_HEADER = "X-CSRF-Token";
+const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 // ─── Core fetch wrapper ───────────────────────────────────────────────────────
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const token = getAccessToken();
+async function doFetch(path: string, options: RequestInit): Promise<Response> {
+  const method = (options.method ?? "GET").toUpperCase();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(options.headers as Record<string, string>),
   };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  const res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
+  if (MUTATING_METHODS.has(method)) {
+    const csrfToken = getCookie(CSRF_COOKIE);
+    if (csrfToken) headers[CSRF_HEADER] = csrfToken;
+  }
+
+  return fetch(`${BASE_URL}${path}`, {
+    ...options,
+    headers,
+    // Send the httpOnly auth cookies with every request, including
+    // cross-site ones (frontend and backend are on different domains).
+    credentials: "include",
+  });
+}
+
+let refreshInFlight: Promise<boolean> | null = null;
+
+/** POST /api/v1/users/refresh — rotates the access/refresh cookies. */
+function refreshAccessToken(): Promise<boolean> {
+  if (!refreshInFlight) {
+    refreshInFlight = doFetch("/api/v1/users/refresh", { method: "POST" })
+      .then((r) => r.ok)
+      .catch(() => false)
+      .finally(() => {
+        refreshInFlight = null;
+      });
+  }
+  return refreshInFlight;
+}
+
+const AUTH_ENDPOINTS_WITHOUT_RETRY = [
+  "/api/v1/users/login",
+  "/api/v1/users/refresh",
+];
+
+async function request<T>(
+  path: string,
+  options: RequestInit = {},
+  allowRetry = true,
+): Promise<T> {
+  let res = await doFetch(path, options);
+
+  // Transparently refresh an expired access token once, then retry.
+  if (
+    res.status === 401 &&
+    allowRetry &&
+    !AUTH_ENDPOINTS_WITHOUT_RETRY.some((p) => path.startsWith(p))
+  ) {
+    const refreshed = await refreshAccessToken();
+    if (refreshed) {
+      res = await doFetch(path, options);
+    }
+  }
 
   if (!res.ok) {
     let errMsg = `API error ${res.status}`;
@@ -94,20 +112,13 @@ export interface AuthUser {
   phone?: string;
 }
 
-/** POST /api/v1/users/login  →  { access_token, refresh_token, token_type, user } */
-export interface LoginResponse {
-  access_token: string;
-  refresh_token: string;
-  token_type: string;
-  user?: AuthUser;
-}
-
 /** POST /api/v1/users/register  →  user object (201) */
 export type RegisterResponse = AuthUser;
 
 export const authApi = {
+  /** POST /api/v1/users/login  →  sets httpOnly auth cookies, returns the user profile. */
   login: (email: string, password: string) =>
-    request<LoginResponse>("/api/v1/users/login", {
+    request<AuthUser>("/api/v1/users/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     }),
@@ -123,6 +134,13 @@ export const authApi = {
       method: "POST",
       body: JSON.stringify(data),
     }),
+
+  /** POST /api/v1/users/refresh — rotates the access/refresh cookies. */
+  refresh: () => request<AuthUser>("/api/v1/users/refresh", { method: "POST" }),
+
+  /** POST /api/v1/users/logout — clears all auth cookies server-side. */
+  logout: () =>
+    request<{ detail: string }>("/api/v1/users/logout", { method: "POST" }),
 
   getProfile: () => request<AuthUser>("/api/v1/users/me"),
 

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   createContext,
@@ -6,102 +6,131 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
-} from 'react';
-import { usePathname, useRouter } from 'next/navigation';
-import type { UserSession } from '@/lib/types';
-import {
-  clearUser,
-  getUser,
-  setUser,
-  saveTokensAndUser,
-  isLoggedIn as checkLoggedIn,
-} from '@/lib/session';
+} from "react";
+import { useRouter } from "next/navigation";
+import type { UserSession } from "@/lib/types";
+import { authApi, type AuthUser } from "@/lib/api";
+import { clearUser, getUser, setUser } from "@/lib/session";
 
 interface AuthContextValue {
   user: UserSession | null;
   ready: boolean;
   isLoggedIn: boolean;
-  refresh: () => void;
+  refresh: () => Promise<void>;
   login: (session: UserSession) => void;
-  loginWithApi: (session: UserSession, tokens: { access: string; refresh: string }) => void;
-  logout: () => void;
+  loginWithApi: (session: UserSession) => void;
+  logout: () => Promise<void>;
   requireAuth: (redirectTo?: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+function toSession(user: AuthUser): UserSession {
+  return {
+    firstName: user.first_name ?? "",
+    lastName: user.last_name ?? "",
+    phone: user.phone ?? "",
+    email: user.email,
+    loggedInAt: new Date().toISOString(),
+  };
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const pathname = usePathname();
   const [user, setUserState] = useState<UserSession | null>(null);
   const [ready, setReady] = useState(false);
+  const mounted = useRef(true);
 
-  const syncFromStorage = useCallback(() => {
-    setUserState(getUser());
+  // Auth tokens live in HttpOnly cookies that JS can never read, so the only
+  // reliable way to know "am I logged in" is to ask the backend. This runs
+  // once on mount; the cached `UserSession` in localStorage is only used to
+  // avoid a flash of "logged out" UI while this request is in flight.
+  const verifySession = useCallback(async () => {
+    try {
+      const profile = await authApi.getProfile();
+      const session = toSession(profile);
+      if (mounted.current) {
+        setUser(session);
+        setUserState(session);
+      }
+    } catch {
+      if (mounted.current) {
+        clearUser();
+        setUserState(null);
+      }
+    } finally {
+      if (mounted.current) setReady(true);
+    }
   }, []);
 
   useEffect(() => {
-    syncFromStorage();
-    setReady(true);
-  }, [syncFromStorage]);
+    mounted.current = true;
+    // Optimistic hint from cache so the UI doesn't flicker while we verify.
+    setUserState(getUser());
+    verifySession();
+    return () => {
+      mounted.current = false;
+    };
+  }, [verifySession]);
 
-  useEffect(() => {
-    if (ready) syncFromStorage();
-  }, [pathname, ready, syncFromStorage]);
+  const refresh = useCallback(async () => {
+    await verifySession();
+  }, [verifySession]);
 
-  const refresh = useCallback(() => {
-    syncFromStorage();
-  }, [syncFromStorage]);
-
-  // Legacy login (no tokens) – kept for compatibility
+  // Legacy in-memory login (no server round-trip) – kept for compatibility
+  // with any code that already has a verified session object on hand.
   const login = useCallback((session: UserSession) => {
     setUser(session);
     setUserState(session);
   }, []);
 
-  // New login that also stores JWT tokens
-  const loginWithApi = useCallback(
-    (session: UserSession, tokens: { access: string; refresh: string }) => {
-      saveTokensAndUser(session, tokens);
-      setUserState(session);
-    },
-    []
-  );
+  // Called right after a successful `authApi.login()`/`authApi.register()`
+  // call. The backend has already set the HttpOnly cookies via `Set-Cookie`
+  // on that response — this just updates the local UI cache.
+  const loginWithApi = useCallback((session: UserSession) => {
+    setUser(session);
+    setUserState(session);
+  }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    try {
+      await authApi.logout();
+    } catch {
+      // Even if the network call fails, clear local state so the UI
+      // reflects "logged out" — the cookies will simply expire naturally.
+    }
     clearUser();
     setUserState(null);
-    router.push('/');
+    router.push("/");
   }, [router]);
 
   const requireAuth = useCallback(
-    (redirectTo = '/login') => {
+    (redirectTo = "/login") => {
       if (!ready) return false;
-      const sessionUser = getUser();
-      if (!sessionUser) {
+      if (!user) {
         router.push(redirectTo);
         return false;
       }
-      if (!user) setUserState(sessionUser);
       return true;
     },
-    [ready, router, user]
+    [ready, router, user],
   );
 
   const value = useMemo(
     () => ({
       user,
       ready,
-      isLoggedIn: !!user || checkLoggedIn(),
+      isLoggedIn: !!user,
       refresh,
       login,
       loginWithApi,
       logout,
       requireAuth,
     }),
-    [user, ready, refresh, login, loginWithApi, logout, requireAuth]
+    [user, ready, refresh, login, loginWithApi, logout, requireAuth],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -110,7 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) {
-    throw new Error('useAuth must be used within AuthProvider');
+    throw new Error("useAuth must be used within AuthProvider");
   }
   return ctx;
 }
