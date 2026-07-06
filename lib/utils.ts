@@ -23,6 +23,23 @@ export function toPersianNum(value: string | number): string {
 }
 
 /**
+ * Only allow same-site, relative redirect targets (e.g. from a `returnUrl`
+ * query param) to avoid open-redirect vulnerabilities. Rejects absolute
+ * URLs, protocol-relative URLs (`//evil.com`), and anything containing a
+ * scheme, falling back to `fallback`.
+ */
+export function sanitizeReturnUrl(
+  url: string | null | undefined,
+  fallback = "/",
+): string {
+  if (!url) return fallback;
+  if (!url.startsWith("/") || url.startsWith("//") || url.startsWith("/\\"))
+    return fallback;
+  if (/^\/[a-z][a-z0-9+.-]*:/i.test(url)) return fallback; // e.g. "/javascript:..."
+  return url;
+}
+
+/**
  * Return the current date/time adjusted to Tehran local time (Asia/Tehran).
  * Useful for "today" comparisons and date-picker initialisation.
  */

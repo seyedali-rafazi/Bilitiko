@@ -3,28 +3,57 @@
  * Base URL is read from NEXT_PUBLIC_API_URL env var.
  */
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
+import { getCookie, setCookie, removeCookie } from "./cookies";
+import { decodeJwtExpiry } from "./jwt";
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 // ─── Token helpers ────────────────────────────────────────────────────────────
+//
+// Tokens are stored in cookies rather than localStorage so the browser can
+// enforce `Secure` (HTTPS-only) and `SameSite` and auto-expire them once the
+// underlying JWT expires. NOTE: these are still plain, JS-readable cookies
+// (not `HttpOnly`), since only a server response can set an `HttpOnly`
+// cookie — see the security note in `lib/cookies.ts` for what it would take
+// to close that gap.
+
+const ACCESS_TOKEN_COOKIE = "bilito-access-token";
+const REFRESH_TOKEN_COOKIE = "bilito-refresh-token";
+
+// Fallbacks used only if the JWT's `exp` claim can't be read.
+const DEFAULT_ACCESS_MAX_AGE = 60 * 60; // 1 hour
+const DEFAULT_REFRESH_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
 export function getAccessToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('bilito-access-token');
+  return getCookie(ACCESS_TOKEN_COOKIE);
 }
 
 export function setTokens(access: string, refresh: string) {
-  localStorage.setItem('bilito-access-token', access);
-  localStorage.setItem('bilito-refresh-token', refresh);
+  const now = Math.floor(Date.now() / 1000);
+  const accessExp = decodeJwtExpiry(access);
+  const refreshExp = decodeJwtExpiry(refresh);
+
+  setCookie(ACCESS_TOKEN_COOKIE, access, {
+    maxAgeSeconds: accessExp
+      ? Math.max(0, accessExp - now)
+      : DEFAULT_ACCESS_MAX_AGE,
+    sameSite: "Strict",
+  });
+  setCookie(REFRESH_TOKEN_COOKIE, refresh, {
+    maxAgeSeconds: refreshExp
+      ? Math.max(0, refreshExp - now)
+      : DEFAULT_REFRESH_MAX_AGE,
+    sameSite: "Strict",
+  });
 }
 
 export function clearTokens() {
-  localStorage.removeItem('bilito-access-token');
-  localStorage.removeItem('bilito-refresh-token');
+  removeCookie(ACCESS_TOKEN_COOKIE);
+  removeCookie(REFRESH_TOKEN_COOKIE);
 }
 
 export function getRefreshToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('bilito-refresh-token');
+  return getCookie(REFRESH_TOKEN_COOKIE);
 }
 
 // ─── Core fetch wrapper ───────────────────────────────────────────────────────
@@ -32,10 +61,10 @@ export function getRefreshToken(): string | null {
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getAccessToken();
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
     ...(options.headers as Record<string, string>),
   };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+  if (token) headers["Authorization"] = `Bearer ${token}`;
 
   const res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
 
@@ -78,8 +107,8 @@ export type RegisterResponse = AuthUser;
 
 export const authApi = {
   login: (email: string, password: string) =>
-    request<LoginResponse>('/api/v1/users/login', {
-      method: 'POST',
+    request<LoginResponse>("/api/v1/users/login", {
+      method: "POST",
       body: JSON.stringify({ email, password }),
     }),
 
@@ -90,16 +119,18 @@ export const authApi = {
     last_name: string;
     phone: string;
   }) =>
-    request<RegisterResponse>('/api/v1/users/register', {
-      method: 'POST',
+    request<RegisterResponse>("/api/v1/users/register", {
+      method: "POST",
       body: JSON.stringify(data),
     }),
 
-  getProfile: () => request<AuthUser>('/api/v1/users/me'),
+  getProfile: () => request<AuthUser>("/api/v1/users/me"),
 
-  updateProfile: (data: Partial<Pick<AuthUser, 'first_name' | 'last_name' | 'phone'>>) =>
-    request<AuthUser>('/api/v1/users/me', {
-      method: 'PUT',
+  updateProfile: (
+    data: Partial<Pick<AuthUser, "first_name" | "last_name" | "phone">>,
+  ) =>
+    request<AuthUser>("/api/v1/users/me", {
+      method: "PUT",
       body: JSON.stringify(data),
     }),
 };
@@ -161,31 +192,35 @@ export const flightsApi = {
       origin: params.origin,
       destination: params.destination,
       departure_date: params.departure_date,
-      flight_class: params.flight_class ?? 'economy',
+      flight_class: params.flight_class ?? "economy",
       limit: String(params.limit ?? 20),
     });
     return request<ApiFlight[]>(`/api/v1/flights/search?${qs}`);
   },
 
   /** GET /api/v1/flights/popular/routes */
-  getPopular: () => request<ApiPopularFlight[]>('/api/v1/flights/popular/routes'),
+  getPopular: () =>
+    request<ApiPopularFlight[]>("/api/v1/flights/popular/routes"),
 
   /** GET /api/v1/flights/destinations/popular */
-  getDestinations: () => request<ApiDestination[]>('/api/v1/flights/destinations/popular'),
+  getDestinations: () =>
+    request<ApiDestination[]>("/api/v1/flights/destinations/popular"),
 
   /** GET /api/v1/flights/cities/all */
-  getCities: () => request<ApiCity[]>('/api/v1/flights/cities/all'),
+  getCities: () => request<ApiCity[]>("/api/v1/flights/cities/all"),
 
   /** GET /api/v1/flights/cities/search?q=... */
   searchCities: (q: string) =>
-    request<ApiCity[]>(`/api/v1/flights/cities/search?q=${encodeURIComponent(q)}`),
+    request<ApiCity[]>(
+      `/api/v1/flights/cities/search?q=${encodeURIComponent(q)}`,
+    ),
 };
 
 // ─── Transport ────────────────────────────────────────────────────────────────
 
 export interface ApiTransportTrip {
   _id: number;
-  transport_type: 'bus' | 'train';
+  transport_type: "bus" | "train";
   company: string;
   logo?: string;
   trip_number: string;
@@ -206,7 +241,7 @@ export interface ApiTransportCity {
 export const transportApi = {
   /** GET /api/v1/transport/search?transport_type=bus&origin=تهران&destination=مشهد&departure_date=...&limit=20 */
   search: (params: {
-    transport_type: 'bus' | 'train';
+    transport_type: "bus" | "train";
     origin: string;
     destination: string;
     departure_date: string;
@@ -223,15 +258,15 @@ export const transportApi = {
   },
 
   /** GET /api/v1/transport/cities/all?transport_type=bus */
-  getCities: (transport_type?: 'bus' | 'train') => {
-    const qs = transport_type ? `?transport_type=${transport_type}` : '';
+  getCities: (transport_type?: "bus" | "train") => {
+    const qs = transport_type ? `?transport_type=${transport_type}` : "";
     return request<ApiTransportCity[]>(`/api/v1/transport/cities/all${qs}`);
   },
 
   /** GET /api/v1/transport/cities/search?q=تهران&transport_type=bus */
-  searchCities: (q: string, transport_type?: 'bus' | 'train') => {
+  searchCities: (q: string, transport_type?: "bus" | "train") => {
     const qs = new URLSearchParams({ q });
-    if (transport_type) qs.set('transport_type', transport_type);
+    if (transport_type) qs.set("transport_type", transport_type);
     return request<ApiTransportCity[]>(`/api/v1/transport/cities/search?${qs}`);
   },
 };
@@ -252,11 +287,11 @@ export const adminApi = {
    */
   seed: (
     adminKey: string,
-    params: { days?: number; trips_per_pair?: number; clean?: boolean } = {}
+    params: { days?: number; trips_per_pair?: number; clean?: boolean } = {},
   ) =>
-    request<ApiSeedResult>('/api/v1/admin/seed', {
-      method: 'POST',
-      headers: { 'X-Admin-Key': adminKey },
+    request<ApiSeedResult>("/api/v1/admin/seed", {
+      method: "POST",
+      headers: { "X-Admin-Key": adminKey },
       body: JSON.stringify({
         days: params.days ?? 14,
         trips_per_pair: params.trips_per_pair ?? 3,
@@ -266,8 +301,8 @@ export const adminApi = {
 
   /** GET /api/v1/admin/seed/status */
   seedStatus: (adminKey: string) =>
-    request<Record<string, unknown>>('/api/v1/admin/seed/status', {
-      headers: { 'X-Admin-Key': adminKey },
+    request<Record<string, unknown>>("/api/v1/admin/seed/status", {
+      headers: { "X-Admin-Key": adminKey },
     }),
 };
 
@@ -300,10 +335,11 @@ export interface ApiInsuranceBookingResponse {
 
 export const insuranceApi = {
   /** GET /api/v1/insurance/plans */
-  getPlans: () => request<ApiInsurancePlan[]>('/api/v1/insurance/plans'),
+  getPlans: () => request<ApiInsurancePlan[]>("/api/v1/insurance/plans"),
 
   /** GET /api/v1/insurance/plans/:id */
-  getPlan: (planId: string) => request<ApiInsurancePlan>(`/api/v1/insurance/plans/${planId}`),
+  getPlan: (planId: string) =>
+    request<ApiInsurancePlan>(`/api/v1/insurance/plans/${planId}`),
 
   /** POST /api/v1/insurance/bookings */
   createBooking: (data: {
@@ -318,12 +354,15 @@ export const insuranceApi = {
     phone: string;
     email: string;
   }) =>
-    request<ApiInsuranceBookingResponse>('/api/v1/insurance/bookings', {
-      method: 'POST',
+    request<ApiInsuranceBookingResponse>("/api/v1/insurance/bookings", {
+      method: "POST",
       body: JSON.stringify(data),
     }),
 
-  getMyBookings: () => request<ApiInsuranceBookingResponse[]>('/api/v1/insurance/bookings/my-bookings'),
+  getMyBookings: () =>
+    request<ApiInsuranceBookingResponse[]>(
+      "/api/v1/insurance/bookings/my-bookings",
+    ),
 };
 
 // ─── Bookings ─────────────────────────────────────────────────────────────────
@@ -333,7 +372,7 @@ export interface ApiPassenger {
   last_name: string;
   national_id: string;
   birth_date: string;
-  gender: 'male' | 'female';
+  gender: "male" | "female";
 }
 
 export interface ApiBookingResponse {
@@ -360,7 +399,7 @@ export const bookingsApi = {
    * bus/train: send { booking_type: 'bus'|'train', transport_trip_id, ... }
    */
   create: (data: {
-    booking_type: 'flight' | 'bus' | 'train';
+    booking_type: "flight" | "bus" | "train";
     flight_id?: number;
     transport_trip_id?: number;
     passengers: ApiPassenger[];
@@ -369,13 +408,14 @@ export const bookingsApi = {
     total_price: number;
     seat_numbers?: string[];
   }) =>
-    request<ApiBookingResponse>('/api/v1/bookings/', {
-      method: 'POST',
+    request<ApiBookingResponse>("/api/v1/bookings/", {
+      method: "POST",
       body: JSON.stringify(data),
     }),
 
   /** GET /api/v1/bookings/my-bookings  (auth required) */
-  getMyBookings: () => request<ApiBookingResponse[]>('/api/v1/bookings/my-bookings'),
+  getMyBookings: () =>
+    request<ApiBookingResponse[]>("/api/v1/bookings/my-bookings"),
 
   /** GET /api/v1/bookings/track/:tracking_code  (public) */
   trackBooking: (trackingCode: string) =>
@@ -383,5 +423,7 @@ export const bookingsApi = {
 
   /** PUT /api/v1/bookings/:id/cancel  (auth required) */
   cancelBooking: (bookingId: number) =>
-    request<ApiBookingResponse>(`/api/v1/bookings/${bookingId}/cancel`, { method: 'PUT' }),
+    request<ApiBookingResponse>(`/api/v1/bookings/${bookingId}/cancel`, {
+      method: "PUT",
+    }),
 };
