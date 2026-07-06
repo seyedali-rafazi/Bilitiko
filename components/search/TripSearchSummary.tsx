@@ -1,6 +1,8 @@
-import Link from 'next/link';
-import { IconType } from 'react-icons';
-import { getCityName } from '@/lib/search-utils';
+import Link from "next/link";
+import { IconType } from "react-icons";
+import { getCityName } from "@/lib/search-utils";
+import { toPersianNum } from "@/lib/utils";
+import { format as formatJalali } from "date-fns-jalali";
 
 interface TripSearchSummaryProps {
   origin: string | null;
@@ -30,33 +32,52 @@ export default function TripSearchSummary({
           <div className="bg-primary-blue p-2 rounded-lg">
             <Icon className="text-white text-lg" />
           </div>
-          <h2 className="text-xl lg:text-2xl font-bold text-neutral-gray8">{title}</h2>
+          <h2 className="text-xl lg:text-2xl font-bold text-neutral-gray8">
+            {title}
+          </h2>
         </div>
-        <Link href={backHref} className="text-sm text-primary-blue font-medium whitespace-nowrap hover:underline">
+        <Link
+          href={backHref}
+          className="text-sm text-primary-blue font-medium whitespace-nowrap hover:underline"
+        >
           جستجوی مجدد
         </Link>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
         <div className="bg-primary-tint1 rounded-xl p-3 lg:p-4 text-right">
-          <span className="text-neutral-gray6 text-xs lg:text-sm block mb-1">مسیر</span>
+          <span className="text-neutral-gray6 text-xs lg:text-sm block mb-1">
+            مسیر
+          </span>
           <span className="font-bold text-neutral-gray8 text-sm lg:text-base">
             {getCityName(origin)} ← {getCityName(destination)}
           </span>
         </div>
         <div className="bg-primary-tint1 rounded-xl p-3 lg:p-4 text-right">
-          <span className="text-neutral-gray6 text-xs lg:text-sm block mb-1">تاریخ</span>
-          <span className="font-bold text-neutral-gray8 text-sm lg:text-base ltr-input inline-block">
-            {departureDate || '—'}
+          <span className="text-neutral-gray6 text-xs lg:text-sm block mb-1">
+            تاریخ
+          </span>
+          <span className="font-bold text-neutral-gray8 text-sm lg:text-base">
+            {departureDate
+              ? toPersianNum(
+                  formatJalali(new Date(departureDate), "yyyy/MM/dd"),
+                )
+              : "—"}
           </span>
         </div>
         <div className="bg-primary-tint1 rounded-xl p-3 lg:p-4 text-right">
-          <span className="text-neutral-gray6 text-xs lg:text-sm block mb-1">مسافران</span>
-          <span className="font-bold text-neutral-gray8 text-sm lg:text-base">{passengers || '1'} نفر</span>
+          <span className="text-neutral-gray6 text-xs lg:text-sm block mb-1">
+            مسافران
+          </span>
+          <span className="font-bold text-neutral-gray8 text-sm lg:text-base">
+            {toPersianNum(passengers || "1")} نفر
+          </span>
         </div>
         <div className="bg-primary-tint1 rounded-xl p-3 lg:p-4 text-right">
-          <span className="text-neutral-gray6 text-xs lg:text-sm block mb-1">نوع سفر</span>
+          <span className="text-neutral-gray6 text-xs lg:text-sm block mb-1">
+            نوع سفر
+          </span>
           <span className="font-bold text-neutral-gray8 text-sm lg:text-base">
-            {tripType === 'roundtrip' ? 'رفت و برگشت' : 'رفت'}
+            {tripType === "roundtrip" ? "رفت و برگشت" : "رفت"}
           </span>
         </div>
       </div>

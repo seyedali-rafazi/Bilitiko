@@ -1,14 +1,15 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { FaPlane } from 'react-icons/fa';
-import { POPULAR_FLIGHTS as FALLBACK_FLIGHTS } from '@/lib/constants';
-import { buildFlightSearchUrl } from '@/lib/search-utils';
-import { flightsApi } from '@/lib/api';
-import type { ApiPopularFlight } from '@/lib/api';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { FaPlane } from "react-icons/fa";
+import { POPULAR_FLIGHTS as FALLBACK_FLIGHTS } from "@/lib/constants";
+import { buildFlightSearchUrl } from "@/lib/search-utils";
+import { usePopularFlights } from "@/hooks/queries";
+import type { ApiPopularFlight } from "@/lib/api";
+import { toPersianNum } from "@/lib/utils";
 
-const cities = ['تهران', 'مشهد', 'اصفهان', 'کیش'];
+const cities = ["تهران", "مشهد", "اصفهان", "کیش"];
 
 interface PopularFlightItem {
   from: string;
@@ -19,11 +20,11 @@ interface PopularFlightItem {
   image: string;
 }
 
-const DEFAULT_IMAGE = '/flight-dubai.webp';
+const DEFAULT_IMAGE = "/flight-dubai.webp";
 
 function mapApiToItem(f: ApiPopularFlight): PopularFlightItem {
   const fallback = FALLBACK_FLIGHTS.find(
-    (s) => s.fromCode === f.from_code && s.toCode === f.to_code
+    (s) => s.fromCode === f.from_code && s.toCode === f.to_code,
   );
   return {
     from: f.from_city,
@@ -37,45 +38,37 @@ function mapApiToItem(f: ApiPopularFlight): PopularFlightItem {
 
 export default function PopularFlights() {
   const router = useRouter();
-  const [activeCity, setActiveCity] = useState('تهران');
-  const [allFlights, setAllFlights] = useState<PopularFlightItem[]>([]);
+  const [activeCity, setActiveCity] = useState("تهران");
+  const { data: apiFlights } = usePopularFlights();
 
-  useEffect(() => {
-    flightsApi
-      .getPopular()
-      .then((res) => setAllFlights(res.map(mapApiToItem)))
-      .catch(() => {
-        // fall back to static constants
-        setAllFlights(
-          FALLBACK_FLIGHTS.map((f) => ({
-            from: f.from,
-            to: f.to,
-            fromCode: f.fromCode,
-            toCode: f.toCode,
-            price: f.price,
-            image: f.image,
-          }))
-        );
-      });
-  }, []);
+  const allFlights: PopularFlightItem[] =
+    apiFlights && apiFlights.length > 0
+      ? apiFlights.map(mapApiToItem)
+      : FALLBACK_FLIGHTS.map((f) => ({
+          from: f.from,
+          to: f.to,
+          fromCode: f.fromCode,
+          toCode: f.toCode,
+          price: f.price,
+          image: f.image,
+        }));
 
   const filtered = allFlights.filter((f) => f.from === activeCity);
   const displayFlights = filtered.length > 0 ? filtered : allFlights;
 
   const openFlight = (fromCode: string, toCode: string) => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split("T")[0];
     router.push(
       buildFlightSearchUrl({
         origin: fromCode,
         destination: toCode,
         departureDate: today,
         passengers: 1,
-        flightClass: 'economy',
-      })
+        flightClass: "economy",
+      }),
     );
   };
 
-  
   return (
     <div className="container mx-auto px-4 mb-12 max-w-[1224px]">
       <div className="mb-6 lg:mb-8">
@@ -90,8 +83,8 @@ export default function PopularFlights() {
               onClick={() => setActiveCity(city)}
               className={`px-4 py-1.5 rounded-lg text-sm lg:text-base transition-colors ${
                 activeCity === city
-                  ? 'bg-primary-tint1 text-primary-blue font-bold border border-primary-blue'
-                  : 'bg-white border border-neutral-gray3 text-neutral-gray7 hover:border-primary-blue'
+                  ? "bg-primary-tint1 text-primary-blue font-bold border border-primary-blue"
+                  : "bg-white border border-neutral-gray3 text-neutral-gray7 hover:border-primary-blue"
               }`}
             >
               {city}
@@ -110,18 +103,30 @@ export default function PopularFlights() {
           >
             <div
               className="h-[88px] bg-cover bg-center bg-neutral-gray3"
-              style={{ backgroundImage: flight.image ? `url(${flight.image})` : undefined }}
+              style={{
+                backgroundImage: flight.image
+                  ? `url(${flight.image})`
+                  : undefined,
+              }}
             />
             <div className="p-4">
               <div className="flex items-center justify-center gap-2 pb-3 border-b border-neutral-gray2 mb-3">
-                <span className="text-sm text-primary-blue font-bold">{flight.from}</span>
+                <span className="text-sm text-primary-blue font-bold">
+                  {flight.from}
+                </span>
                 <FaPlane className="text-primary-blue text-xs rotate-90" />
-                <span className="text-sm text-neutral-gray8 font-bold">{flight.to}</span>
+                <span className="text-sm text-neutral-gray8 font-bold">
+                  {flight.to}
+                </span>
               </div>
               <div>
-                <div className="text-xs text-neutral-gray6 mb-1">شروع قیمت از:</div>
+                <div className="text-xs text-neutral-gray6 mb-1">
+                  شروع قیمت از:
+                </div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-base font-bold text-neutral-gray9">{flight.price}</span>
+                  <span className="text-base font-bold text-neutral-gray9">
+                    {toPersianNum(flight.price)}
+                  </span>
                   <span className="text-xs text-neutral-gray6">تومان</span>
                 </div>
               </div>

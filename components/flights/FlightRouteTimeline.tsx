@@ -1,5 +1,6 @@
-import { HiOutlineClock } from 'react-icons/hi2';
-import { TbPlane } from 'react-icons/tb';
+import { HiOutlineClock } from "react-icons/hi2";
+import { TbPlane } from "react-icons/tb";
+import { toPersianNum } from "@/lib/utils";
 
 interface FlightRouteTimelineProps {
   departureTime: string;
@@ -20,14 +21,21 @@ export default function FlightRouteTimeline({
   stops,
   compact = false,
 }: FlightRouteTimelineProps) {
-  const stopsLabel = stops === 0 ? 'مستقیم' : `${stops.toLocaleString('fa-IR')} توقف`;
+  const stopsLabel = stops === 0 ? "مستقیم" : `${toPersianNum(stops)} توقف`;
+  const persianDeparture = toPersianNum(departureTime);
+  const persianArrival = toPersianNum(arrivalTime);
+  const persianDuration = toPersianNum(duration);
 
   if (compact) {
     return (
       <div className="flex items-center gap-3 flex-1 min-w-0">
         <div className="text-center shrink-0">
-          <p className="text-lg font-bold text-neutral-gray8 tabular-nums">{departureTime}</p>
-          <p className="text-[11px] text-neutral-gray6 truncate max-w-[56px]">{origin}</p>
+          <p className="text-lg font-bold text-neutral-gray8 tabular-nums">
+            {persianDeparture}
+          </p>
+          <p className="text-[11px] text-neutral-gray6 truncate max-w-[56px]">
+            {origin}
+          </p>
         </div>
 
         <div className="flex-1 flex flex-col items-center gap-1 min-w-0 px-1">
@@ -41,13 +49,17 @@ export default function FlightRouteTimeline({
           </div>
           <div className="flex items-center gap-1 text-[10px] text-neutral-gray6">
             <HiOutlineClock className="text-xs" />
-            <span>{duration}</span>
+            <span>{persianDuration}</span>
           </div>
         </div>
 
         <div className="text-center shrink-0">
-          <p className="text-lg font-bold text-neutral-gray8 tabular-nums">{arrivalTime}</p>
-          <p className="text-[11px] text-neutral-gray6 truncate max-w-[56px]">{destination}</p>
+          <p className="text-lg font-bold text-neutral-gray8 tabular-nums">
+            {persianArrival}
+          </p>
+          <p className="text-[11px] text-neutral-gray6 truncate max-w-[56px]">
+            {destination}
+          </p>
         </div>
       </div>
     );
@@ -56,7 +68,9 @@ export default function FlightRouteTimeline({
   return (
     <div className="flex items-center gap-5 flex-1">
       <div className="text-center shrink-0 w-20">
-        <p className="text-2xl font-bold text-neutral-gray8 tabular-nums">{departureTime}</p>
+        <p className="text-2xl font-bold text-neutral-gray8 tabular-nums">
+          {persianDeparture}
+        </p>
         <p className="text-sm text-neutral-gray6 mt-0.5">{origin}</p>
       </div>
 
@@ -73,12 +87,14 @@ export default function FlightRouteTimeline({
         </div>
         <div className="flex items-center gap-1.5 text-xs text-neutral-gray6">
           <HiOutlineClock className="text-sm text-primary-blue" />
-          <span>{duration}</span>
+          <span>{persianDuration}</span>
         </div>
       </div>
 
       <div className="text-center shrink-0 w-20">
-        <p className="text-2xl font-bold text-neutral-gray8 tabular-nums">{arrivalTime}</p>
+        <p className="text-2xl font-bold text-neutral-gray8 tabular-nums">
+          {persianArrival}
+        </p>
         <p className="text-sm text-neutral-gray6 mt-0.5">{destination}</p>
       </div>
     </div>

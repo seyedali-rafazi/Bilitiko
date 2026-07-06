@@ -1,10 +1,16 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
-import { createPortal } from 'react-dom';
-import { format as formatJalali, parse as parseJalali } from 'date-fns-jalali';
-import { FaCalendarAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import { cn } from '@/lib/utils';
+import {
+  useState,
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useCallback,
+} from "react";
+import { createPortal } from "react-dom";
+import { format as formatJalali, parse as parseJalali } from "date-fns-jalali";
+import { FaCalendarAlt, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { cn, toPersianNum, getTehranNow } from "@/lib/utils";
 
 const DROPDOWN_WIDTH = 320;
 const VIEWPORT_PADDING = 16;
@@ -23,17 +29,27 @@ interface PersianDatePickerProps {
 }
 
 const PERSIAN_MONTHS = [
-  'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
-  'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
+  "فروردین",
+  "اردیبهشت",
+  "خرداد",
+  "تیر",
+  "مرداد",
+  "شهریور",
+  "مهر",
+  "آبان",
+  "آذر",
+  "دی",
+  "بهمن",
+  "اسفند",
 ];
 
-const PERSIAN_WEEKDAYS = ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'];
+const PERSIAN_WEEKDAYS = ["ش", "ی", "د", "س", "چ", "پ", "ج"];
 
 export default function PersianDatePicker({
   value,
   onChange,
   label,
-  placeholder = 'انتخاب تاریخ',
+  placeholder = "انتخاب تاریخ",
   required = false,
   minDate,
   maxDate,
@@ -64,7 +80,10 @@ export default function PersianDatePicker({
     const width = Math.min(DROPDOWN_WIDTH, maxWidth);
 
     let left = triggerRect.left + (triggerRect.width - width) / 2;
-    left = Math.max(VIEWPORT_PADDING, Math.min(left, window.innerWidth - width - VIEWPORT_PADDING));
+    left = Math.max(
+      VIEWPORT_PADDING,
+      Math.min(left, window.innerWidth - width - VIEWPORT_PADDING),
+    );
 
     let top = triggerRect.bottom + DROPDOWN_GAP;
     if (top + dropdownHeight > window.innerHeight - VIEWPORT_PADDING) {
@@ -73,7 +92,7 @@ export default function PersianDatePicker({
     top = Math.max(VIEWPORT_PADDING, top);
 
     setDropdownStyle({
-      position: 'fixed',
+      position: "fixed",
       top,
       left,
       width,
@@ -90,22 +109,22 @@ export default function PersianDatePicker({
     if (!isOpen) return;
 
     const handleReposition = () => updateDropdownPosition();
-    window.addEventListener('resize', handleReposition);
-    window.addEventListener('scroll', handleReposition, true);
+    window.addEventListener("resize", handleReposition);
+    window.addEventListener("scroll", handleReposition, true);
     return () => {
-      window.removeEventListener('resize', handleReposition);
-      window.removeEventListener('scroll', handleReposition, true);
+      window.removeEventListener("resize", handleReposition);
+      window.removeEventListener("scroll", handleReposition, true);
     };
   }, [isOpen, updateDropdownPosition]);
 
   // Convert ISO date to Persian display
   const getDisplayValue = () => {
-    if (!value) return '';
+    if (!value) return "";
     try {
       const date = new Date(value);
-      return formatJalali(date, 'yyyy/MM/dd');
+      return toPersianNum(formatJalali(date, "yyyy/MM/dd"));
     } catch {
-      return '';
+      return "";
     }
   };
 
@@ -123,12 +142,19 @@ export default function PersianDatePicker({
     };
 
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [isOpen]);
 
-  // Initialize display month from value
+  // Initialize display month — default to Tehran's current date
+  useEffect(() => {
+    if (!value) {
+      setDisplayMonth(getTehranNow());
+    }
+  }, []);
+
   useEffect(() => {
     if (value) {
       try {
@@ -142,8 +168,8 @@ export default function PersianDatePicker({
 
   const handleDateSelect = (date: Date) => {
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
     onChange(`${year}-${month}-${day}`);
     setIsOpen(false);
   };
@@ -163,7 +189,7 @@ export default function PersianDatePicker({
     const startWeekday = firstDay.getDay(); // 0 = Sunday
 
     const days: (Date | null)[] = [];
-    
+
     // Add empty cells for days before month starts
     // Adjust for Persian week (Saturday = 0)
     const adjustedStart = (startWeekday + 1) % 7;
@@ -181,16 +207,16 @@ export default function PersianDatePicker({
 
   const isDateDisabled = (date: Date) => {
     const dateStr = format(date);
-    
+
     // Disable past dates if enabled
     if (disablePastDates) {
-      const today = new Date();
+      const today = getTehranNow();
       today.setHours(0, 0, 0, 0);
       const checkDate = new Date(date);
       checkDate.setHours(0, 0, 0, 0);
       if (checkDate < today) return true;
     }
-    
+
     if (minDate && dateStr < minDate) return true;
     if (maxDate && dateStr > maxDate) return true;
     return false;
@@ -201,10 +227,19 @@ export default function PersianDatePicker({
     return format(date) === value;
   };
 
+  const isToday = (date: Date) => {
+    const tehranToday = getTehranNow();
+    return (
+      date.getFullYear() === tehranToday.getFullYear() &&
+      date.getMonth() === tehranToday.getMonth() &&
+      date.getDate() === tehranToday.getDate()
+    );
+  };
+
   const format = (date: Date) => {
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
 
@@ -214,17 +249,19 @@ export default function PersianDatePicker({
   // Get Persian month and year for display
   const getPersianMonthYear = () => {
     try {
-      const jalaliDate = formatJalali(displayMonth, 'yyyy MMMM', { locale: undefined });
-      return jalaliDate;
+      const jalaliDate = formatJalali(displayMonth, "yyyy MMMM", {
+        locale: undefined,
+      });
+      return toPersianNum(jalaliDate);
     } catch {
-      return '';
+      return "";
     }
   };
 
   // Get current Persian year
   const getCurrentPersianYear = () => {
     try {
-      return parseInt(formatJalali(displayMonth, 'yyyy'));
+      return parseInt(formatJalali(displayMonth, "yyyy"));
     } catch {
       return 1403;
     }
@@ -233,7 +270,7 @@ export default function PersianDatePicker({
   // Get current Persian month (0-11)
   const getCurrentPersianMonth = () => {
     try {
-      return parseInt(formatJalali(displayMonth, 'M')) - 1;
+      return parseInt(formatJalali(displayMonth, "M")) - 1;
     } catch {
       return 0;
     }
@@ -243,12 +280,16 @@ export default function PersianDatePicker({
   const setMonthYear = (year: number, month: number) => {
     try {
       // Parse Persian date and convert to Gregorian
-      const persianDateStr = `${year}/${String(month + 1).padStart(2, '0')}/01`;
-      const gregorianDate = parseJalali(persianDateStr, 'yyyy/MM/dd', new Date());
+      const persianDateStr = `${year}/${String(month + 1).padStart(2, "0")}/01`;
+      const gregorianDate = parseJalali(
+        persianDateStr,
+        "yyyy/MM/dd",
+        new Date(),
+      );
       setDisplayMonth(gregorianDate);
       setShowYearMonthPicker(false);
     } catch (error) {
-      console.error('Error setting month/year:', error);
+      console.error("Error setting month/year:", error);
     }
   };
 
@@ -260,7 +301,7 @@ export default function PersianDatePicker({
     // For future dates, show up to 10 years ahead
     const startYear = disablePastDates ? currentYear : currentYear - 100;
     const endYear = currentYear + 10;
-    
+
     for (let i = startYear; i <= endYear; i++) {
       years.push(i);
     }
@@ -268,183 +309,200 @@ export default function PersianDatePicker({
   };
 
   return (
-    <div ref={containerRef} className={cn('relative', className)}>
+    <div ref={containerRef} className={cn("relative", className)}>
       {label && (
         <label className="block text-sm font-medium text-neutral-gray8 mb-1.5">
           {label}
           {required && <span className="text-status-error mr-1">*</span>}
         </label>
       )}
-      
+
       <button
         ref={triggerRef}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          'w-full h-12 px-4 flex items-center justify-between',
-          'bg-white border border-neutral-gray3 rounded-lg',
-          'text-right text-sm transition-colors',
-          'hover:border-primary-blue focus:outline-none focus:ring-2 focus:ring-primary-blue/20',
-          !displayValue && 'text-neutral-gray5'
+          "w-full h-12 px-4 flex items-center justify-between",
+          "bg-white border border-neutral-gray3 rounded-lg",
+          "text-right text-sm transition-colors",
+          "hover:border-primary-blue focus:outline-none focus:ring-2 focus:ring-primary-blue/20",
+          !displayValue && "text-neutral-gray5",
         )}
       >
         <span>{displayValue || placeholder}</span>
         <FaCalendarAlt className="text-neutral-gray5" />
       </button>
 
-      {isOpen && mounted && createPortal(
-        <div
-          ref={dropdownRef}
-          style={dropdownStyle}
-          className="bg-white border border-neutral-gray3 rounded-xl shadow-lg p-4"
-        >
-          {!showYearMonthPicker ? (
-            <>
-              {/* Month/Year Header */}
-              <div className="flex items-center justify-between mb-4">
-                <button
-                  type="button"
-                  onClick={() => changeMonth(1)}
-                  className="p-2 hover:bg-neutral-gray1 rounded-lg transition-colors"
-                >
-                  <FaChevronLeft className="text-neutral-gray6" />
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={() => setShowYearMonthPicker(true)}
-                  className="text-sm font-bold text-neutral-gray8 hover:bg-neutral-gray1 px-3 py-1 rounded-lg transition-colors"
-                >
-                  {getPersianMonthYear()}
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={() => changeMonth(-1)}
-                  className="p-2 hover:bg-neutral-gray1 rounded-lg transition-colors"
-                >
-                  <FaChevronRight className="text-neutral-gray6" />
-                </button>
-              </div>
-
-              {/* Weekday Headers */}
-              <div className="grid grid-cols-7 gap-1 mb-2">
-                {PERSIAN_WEEKDAYS.map((day) => (
-                  <div
-                    key={day}
-                    className="text-center text-xs font-medium text-neutral-gray6 py-2"
-                  >
-                    {day}
-                  </div>
-                ))}
-              </div>
-
-              {/* Calendar Days */}
-              <div className="grid grid-cols-7 gap-1">
-                {days.map((date, index) => {
-                  if (!date) {
-                    return <div key={`empty-${index}`} className="aspect-square" />;
-                  }
-
-                  const disabled = isDateDisabled(date);
-                  const selected = isDateSelected(date);
-                  const isToday = format(date) === format(new Date());
-
-                  return (
-                    <button
-                      key={index}
-                      type="button"
-                      onClick={() => !disabled && handleDateSelect(date)}
-                      disabled={disabled}
-                      className={cn(
-                        'aspect-square flex items-center justify-center rounded-lg text-sm transition-colors',
-                        disabled && 'text-neutral-gray4 cursor-not-allowed',
-                        !disabled && !selected && 'hover:bg-primary-tint1 text-neutral-gray8',
-                        selected && 'bg-primary-blue text-white font-bold',
-                        isToday && !selected && 'border border-primary-blue'
-                      )}
-                    >
-                      {formatJalali(date, 'd')}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Today Button */}
-              <button
-                type="button"
-                onClick={() => handleDateSelect(new Date())}
-                disabled={disablePastDates && isDateDisabled(new Date())}
-                className="w-full mt-4 py-2 text-sm text-primary-blue hover:bg-primary-tint1 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                امروز
-              </button>
-            </>
-          ) : (
-            <>
-              {/* Year/Month Picker */}
-              <div className="mb-4">
-                <div className="flex items-center justify-between mb-3">
+      {isOpen &&
+        mounted &&
+        createPortal(
+          <div
+            ref={dropdownRef}
+            style={dropdownStyle}
+            className="bg-white border border-neutral-gray3 rounded-xl shadow-lg p-4"
+          >
+            {!showYearMonthPicker ? (
+              <>
+                {/* Month/Year Header */}
+                <div className="flex items-center justify-between mb-4">
                   <button
                     type="button"
-                    onClick={() => setShowYearMonthPicker(false)}
-                    className="text-sm text-primary-blue hover:bg-primary-tint1 px-3 py-1 rounded-lg transition-colors"
+                    onClick={() => changeMonth(1)}
+                    className="p-2 hover:bg-neutral-gray1 rounded-lg transition-colors"
                   >
-                    بازگشت
+                    <FaChevronLeft className="text-neutral-gray6" />
                   </button>
-                  <span className="text-sm font-bold text-neutral-gray8">انتخاب ماه و سال</span>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowYearMonthPicker(true)}
+                    className="text-sm font-bold text-neutral-gray8 hover:bg-neutral-gray1 px-3 py-1 rounded-lg transition-colors"
+                  >
+                    {getPersianMonthYear()}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => changeMonth(-1)}
+                    className="p-2 hover:bg-neutral-gray1 rounded-lg transition-colors"
+                  >
+                    <FaChevronRight className="text-neutral-gray6" />
+                  </button>
                 </div>
 
-                {/* Year Selector */}
+                {/* Weekday Headers */}
+                <div className="grid grid-cols-7 gap-1 mb-2">
+                  {PERSIAN_WEEKDAYS.map((day) => (
+                    <div
+                      key={day}
+                      className="text-center text-xs font-medium text-neutral-gray6 py-2"
+                    >
+                      {day}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Calendar Days */}
+                <div className="grid grid-cols-7 gap-1">
+                  {days.map((date, index) => {
+                    if (!date) {
+                      return (
+                        <div key={`empty-${index}`} className="aspect-square" />
+                      );
+                    }
+
+                    const disabled = isDateDisabled(date);
+                    const selected = isDateSelected(date);
+                    const isTodayDate = isToday(date);
+
+                    return (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => !disabled && handleDateSelect(date)}
+                        disabled={disabled}
+                        className={cn(
+                          "aspect-square flex items-center justify-center rounded-lg text-sm transition-colors",
+                          disabled && "text-neutral-gray4 cursor-not-allowed",
+                          !disabled &&
+                            !selected &&
+                            "hover:bg-primary-tint1 text-neutral-gray8",
+                          selected && "bg-primary-blue text-white font-bold",
+                          isTodayDate &&
+                            !selected &&
+                            "border border-primary-blue",
+                        )}
+                      >
+                        {toPersianNum(formatJalali(date, "d"))}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Today Button */}
+                <button
+                  type="button"
+                  onClick={() => handleDateSelect(getTehranNow())}
+                  disabled={disablePastDates && isDateDisabled(getTehranNow())}
+                  className="w-full mt-4 py-2 text-sm text-primary-blue hover:bg-primary-tint1 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  امروز
+                </button>
+              </>
+            ) : (
+              <>
+                {/* Year/Month Picker */}
                 <div className="mb-4">
-                  <label className="block text-xs text-neutral-gray6 mb-2">سال</label>
-                  <div className="grid grid-cols-4 gap-2 max-h-[150px] overflow-y-auto">
-                    {getYearRange().map((year) => (
-                      <button
-                        key={year}
-                        type="button"
-                        onClick={() => setMonthYear(year, getCurrentPersianMonth())}
-                        className={cn(
-                          'py-2 text-sm rounded-lg transition-colors',
-                          year === getCurrentPersianYear()
-                            ? 'bg-primary-blue text-white font-bold'
-                            : 'hover:bg-primary-tint1 text-neutral-gray8'
-                        )}
-                      >
-                        {year.toLocaleString('fa-IR')}
-                      </button>
-                    ))}
+                  <div className="flex items-center justify-between mb-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowYearMonthPicker(false)}
+                      className="text-sm text-primary-blue hover:bg-primary-tint1 px-3 py-1 rounded-lg transition-colors"
+                    >
+                      بازگشت
+                    </button>
+                    <span className="text-sm font-bold text-neutral-gray8">
+                      انتخاب ماه و سال
+                    </span>
                   </div>
-                </div>
 
-                {/* Month Selector */}
-                <div>
-                  <label className="block text-xs text-neutral-gray6 mb-2">ماه</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {PERSIAN_MONTHS.map((month, index) => (
-                      <button
-                        key={month}
-                        type="button"
-                        onClick={() => setMonthYear(getCurrentPersianYear(), index)}
-                        className={cn(
-                          'py-2 text-sm rounded-lg transition-colors',
-                          index === getCurrentPersianMonth()
-                            ? 'bg-primary-blue text-white font-bold'
-                            : 'hover:bg-primary-tint1 text-neutral-gray8'
-                        )}
-                      >
-                        {month}
-                      </button>
-                    ))}
+                  {/* Year Selector */}
+                  <div className="mb-4">
+                    <label className="block text-xs text-neutral-gray6 mb-2">
+                      سال
+                    </label>
+                    <div className="grid grid-cols-4 gap-2 max-h-[150px] overflow-y-auto">
+                      {getYearRange().map((year) => (
+                        <button
+                          key={year}
+                          type="button"
+                          onClick={() =>
+                            setMonthYear(year, getCurrentPersianMonth())
+                          }
+                          className={cn(
+                            "py-2 text-sm rounded-lg transition-colors",
+                            year === getCurrentPersianYear()
+                              ? "bg-primary-blue text-white font-bold"
+                              : "hover:bg-primary-tint1 text-neutral-gray8",
+                          )}
+                        >
+                          {year.toLocaleString("fa-IR")}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Month Selector */}
+                  <div>
+                    <label className="block text-xs text-neutral-gray6 mb-2">
+                      ماه
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {PERSIAN_MONTHS.map((month, index) => (
+                        <button
+                          key={month}
+                          type="button"
+                          onClick={() =>
+                            setMonthYear(getCurrentPersianYear(), index)
+                          }
+                          className={cn(
+                            "py-2 text-sm rounded-lg transition-colors",
+                            index === getCurrentPersianMonth()
+                              ? "bg-primary-blue text-white font-bold"
+                              : "hover:bg-primary-tint1 text-neutral-gray8",
+                          )}
+                        >
+                          {month}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </>
-          )}
-        </div>,
-        document.body
-      )}
+              </>
+            )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
-

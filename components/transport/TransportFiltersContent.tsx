@@ -1,18 +1,25 @@
-'use client';
+"use client";
 
-import { Bus, Train } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/shadcn/card';
-import { Checkbox } from '@/components/ui/shadcn/checkbox';
-import { Label } from '@/components/ui/shadcn/label';
-import { Separator } from '@/components/ui/shadcn/separator';
-import { Slider } from '@/components/ui/shadcn/slider';
-import type { TransportTrip } from '@/lib/transport-utils';
+import { Bus, Train } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/shadcn/card";
+import { Checkbox } from "@/components/ui/shadcn/checkbox";
+import { Label } from "@/components/ui/shadcn/label";
+import { Separator } from "@/components/ui/shadcn/separator";
+import { Slider } from "@/components/ui/shadcn/slider";
+import type { TransportTrip } from "@/lib/transport-utils";
 import {
   buildPriceHistogram,
   formatPriceFull,
   formatPriceShort,
   getPriceBounds,
-} from '@/lib/transport-utils';
+} from "@/lib/transport-utils";
+import { toPersianNum } from "@/lib/utils";
+import { format as formatJalali } from "date-fns-jalali";
 
 export interface TransportFiltersContentProps {
   trips: TransportTrip[];
@@ -23,7 +30,7 @@ export interface TransportFiltersContentProps {
   onCompanyToggle: (company: string) => void;
   onPriceRangeChange: (range: [number, number]) => void;
   compact?: boolean;
-  type: 'bus' | 'train';
+  type: "bus" | "train";
   companies: string[];
 }
 
@@ -42,12 +49,12 @@ export default function TransportFiltersContent({
   const { min, max } = getPriceBounds(trips);
   const histogram = buildPriceHistogram(trips);
   const maxBar = Math.max(...histogram, 1);
-  const idPrefix = compact ? 'mobile' : 'desktop';
-  const Icon = type === 'bus' ? Bus : Train;
-  const label = type === 'bus' ? 'اتوبوس' : 'قطار';
+  const idPrefix = compact ? "mobile" : "desktop";
+  const Icon = type === "bus" ? Bus : Train;
+  const label = type === "bus" ? "اتوبوس" : "قطار";
 
   return (
-    <div className={compact ? 'space-y-4' : 'space-y-4'}>
+    <div className={compact ? "space-y-4" : "space-y-4"}>
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-sm">
@@ -56,8 +63,12 @@ export default function TransportFiltersContent({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-2xl font-bold text-primary">{filteredCount.toLocaleString('fa-IR')}</p>
-          <p className="text-xs text-muted-foreground">از {trips.length.toLocaleString('fa-IR')} سرویس</p>
+          <p className="text-2xl font-bold text-primary">
+            {filteredCount.toLocaleString("fa-IR")}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            از {trips.length.toLocaleString("fa-IR")} سرویس
+          </p>
         </CardContent>
       </Card>
 
@@ -69,7 +80,7 @@ export default function TransportFiltersContent({
               className="flex-1 rounded-t-sm bg-primary/15 transition-all"
               style={{
                 height: `${(count / maxBar) * 100}%`,
-                minHeight: count > 0 ? '8px' : '2px',
+                minHeight: count > 0 ? "8px" : "2px",
                 opacity: count > 0 ? 1 : 0.3,
               }}
             />
@@ -80,21 +91,28 @@ export default function TransportFiltersContent({
           max={max}
           step={10000}
           value={priceRange}
-          onValueChange={(value) => onPriceRangeChange(value as [number, number])}
+          onValueChange={(value) =>
+            onPriceRangeChange(value as [number, number])
+          }
         />
         <div className="flex justify-between text-xs text-muted-foreground mt-3">
           <span>{formatPriceShort(priceRange[0])}</span>
           <span>{formatPriceShort(priceRange[1])}</span>
         </div>
         <p className="text-xs text-muted-foreground mt-1 text-center">
-          {formatPriceFull(priceRange[0])} – {formatPriceFull(priceRange[1])} تومان
+          {formatPriceFull(priceRange[0])} – {formatPriceFull(priceRange[1])}{" "}
+          تومان
         </p>
       </FilterSection>
 
       {departureDate && (
         <FilterSection title="تاریخ حرکت">
           <div className="rounded-lg bg-secondary p-3 text-center">
-            <p className="text-sm font-bold ltr-input">{departureDate}</p>
+            <p className="text-sm font-bold">
+              {toPersianNum(
+                formatJalali(new Date(departureDate), "yyyy/MM/dd"),
+              )}
+            </p>
           </div>
         </FilterSection>
       )}
@@ -111,10 +129,15 @@ export default function TransportFiltersContent({
                   checked={selectedCompanies.includes(company)}
                   onCheckedChange={() => onCompanyToggle(company)}
                 />
-                <Label htmlFor={id} className="flex-1 cursor-pointer text-sm font-normal">
+                <Label
+                  htmlFor={id}
+                  className="flex-1 cursor-pointer text-sm font-normal"
+                >
                   {company}
                 </Label>
-                <span className="text-xs text-muted-foreground">{count.toLocaleString('fa-IR')}</span>
+                <span className="text-xs text-muted-foreground">
+                  {count.toLocaleString("fa-IR")}
+                </span>
               </div>
             );
           })}
@@ -124,7 +147,13 @@ export default function TransportFiltersContent({
   );
 }
 
-function FilterSection({ title, children }: { title: string; children: React.ReactNode }) {
+function FilterSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -135,4 +164,3 @@ function FilterSection({ title, children }: { title: string; children: React.Rea
     </Card>
   );
 }
-

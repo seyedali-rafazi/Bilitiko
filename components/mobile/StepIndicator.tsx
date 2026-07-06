@@ -1,3 +1,5 @@
+import { toPersianNum } from "@/lib/utils";
+
 interface StepIndicatorProps {
   steps: string[];
   current: number;
@@ -11,15 +13,15 @@ export default function StepIndicator({ steps, current }: StepIndicatorProps) {
           <div
             className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
               i <= current
-                ? 'bg-primary-blue text-white'
-                : 'bg-neutral-gray2 text-neutral-gray6'
+                ? "bg-primary-blue text-white"
+                : "bg-neutral-gray2 text-neutral-gray6"
             }`}
           >
-            {i + 1}
+            {toPersianNum(i + 1)}
           </div>
           {i < steps.length - 1 && (
             <div
-              className={`w-6 h-0.5 ${i < current ? 'bg-primary-blue' : 'bg-neutral-gray3'}`}
+              className={`w-6 h-0.5 ${i < current ? "bg-primary-blue" : "bg-neutral-gray3"}`}
             />
           )}
         </div>

@@ -1,43 +1,33 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { FaCheckCircle, FaShieldAlt } from 'react-icons/fa';
-import PageLayout from '@/components/layout/PageLayout';
-import Button from '@/components/ui/Button';
-import BottomSheet from '@/components/mobile/BottomSheet';
-import Modal from '@/components/ui/Modal';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { Card, CardContent } from '@/components/ui/shadcn/card';
-import { insuranceApi } from '@/lib/api';
-import { apiInsurancePlanToPlan } from '@/lib/api-transforms';
-import { INSURANCE_PLANS as FALLBACK_PLANS } from '@/lib/insurance-data';
-import { isLoggedIn } from '@/lib/session';
-import type { InsurancePlan } from '@/lib/types';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { FaCheckCircle, FaShieldAlt } from "react-icons/fa";
+import PageLayout from "@/components/layout/PageLayout";
+import Button from "@/components/ui/Button";
+import BottomSheet from "@/components/mobile/BottomSheet";
+import Modal from "@/components/ui/Modal";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { Card, CardContent } from "@/components/ui/shadcn/card";
+import { useInsurancePlans } from "@/hooks/queries";
+import { isLoggedIn } from "@/lib/session";
+import type { InsurancePlan } from "@/lib/types";
 
 export default function InsurancePage() {
   const router = useRouter();
   const [selectedPlan, setSelectedPlan] = useState<InsurancePlan | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
-  const [plans, setPlans] = useState<InsurancePlan[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  const { data: plans = [], isLoading } = useInsurancePlans();
 
   useEffect(() => {
-    const mq = window.matchMedia('(min-width: 1024px)');
+    const mq = window.matchMedia("(min-width: 1024px)");
     setIsDesktop(mq.matches);
     const onChange = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
-  }, []);
-
-  useEffect(() => {
-    insuranceApi
-      .getPlans()
-      .then((res) => setPlans(res.map(apiInsurancePlanToPlan)))
-      .catch(() => setPlans(FALLBACK_PLANS)) // fall back to static data on error
-      .finally(() => setLoading(false));
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
   }, []);
 
   const handleSelect = (plan: InsurancePlan) => {
@@ -52,13 +42,14 @@ export default function InsurancePage() {
   const confirmPlan = () => {
     if (!selectedPlan) return;
     setModalOpen(false);
-    // Persist the full plan object so booking/payment pages can use it regardless
-    // of whether the id is a static string ('gold') or an API numeric id ('1').
-    localStorage.setItem('bilito-selected-insurance-plan', JSON.stringify(selectedPlan));
+    localStorage.setItem(
+      "bilito-selected-insurance-plan",
+      JSON.stringify(selectedPlan),
+    );
     router.push(`/insurance/booking?plan=${selectedPlan._id}`);
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <PageLayout mobileTitle="بیمه مسافرتی">
         <LoadingSpinner message="در حال بارگذاری پلن‌ها…" />
@@ -66,12 +57,15 @@ export default function InsurancePage() {
     );
   }
 
-  
   return (
     <PageLayout mobileTitle="بیمه مسافرتی">
       <div className="lg:hidden px-4 py-4 bg-primary-tint1">
-        <h2 className="text-lg font-bold text-neutral-gray8 mb-2">بیمه مسافرتی بیلیتیکو</h2>
-        <p className="text-sm text-neutral-gray6">سفر خود را با خیال راحت آغاز کنید</p>
+        <h2 className="text-lg font-bold text-neutral-gray8 mb-2">
+          بیمه مسافرتی بیلیتیکو
+        </h2>
+        <p className="text-sm text-neutral-gray6">
+          سفر خود را با خیال راحت آغاز کنید
+        </p>
       </div>
 
       <div className="hidden lg:block">
@@ -79,17 +73,21 @@ export default function InsurancePage() {
           <div className="text-center text-white">
             <FaShieldAlt className="text-4xl mx-auto mb-3 opacity-90" />
             <h1 className="text-3xl font-bold">بیمه مسافرتی</h1>
-            <p className="text-white/80 mt-2">پوشش کامل برای سفرهای داخلی و خارجی</p>
+            <p className="text-white/80 mt-2">
+              پوشش کامل برای سفرهای داخلی و خارجی
+            </p>
           </div>
         </div>
       </div>
 
       <div className="max-w-lg lg:max-w-[1224px] mx-auto px-4 py-6">
         <div className="space-y-4 lg:grid lg:grid-cols-3 lg:gap-6 lg:space-y-0">
-          {plans.map((plan) => (            
+          {plans.map((plan) => (
             <Card
               key={plan._id}
-              className={plan.popular ? 'border-primary border-2 relative shadow-md' : ''}
+              className={
+                plan.popular ? "border-primary border-2 relative shadow-md" : ""
+              }
             >
               <CardContent className="p-6">
                 {plan.popular && (
@@ -98,14 +96,25 @@ export default function InsurancePage() {
                   </span>
                 )}
                 <div className="flex items-center gap-2 mb-3">
-                  <FaShieldAlt className={plan.popular ? 'text-primary' : 'text-neutral-gray6'} />
-                  <h3 className="text-lg font-bold text-neutral-gray8">{plan.title}</h3>
+                  <FaShieldAlt
+                    className={
+                      plan.popular ? "text-primary" : "text-neutral-gray6"
+                    }
+                  />
+                  <h3 className="text-lg font-bold text-neutral-gray8">
+                    {plan.title}
+                  </h3>
                 </div>
-                <p className="text-sm text-neutral-gray6 mb-4">پوشش تا {plan.coverage}</p>
+                <p className="text-sm text-neutral-gray6 mb-4">
+                  پوشش تا {plan.coverage}
+                </p>
 
                 <ul className="space-y-2 mb-5">
                   {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-2 text-sm text-neutral-gray7">
+                    <li
+                      key={feature}
+                      className="flex items-start gap-2 text-sm text-neutral-gray7"
+                    >
                       <FaCheckCircle className="text-status-success shrink-0 mt-0.5 text-xs" />
                       <span>{feature}</span>
                     </li>
@@ -113,13 +122,15 @@ export default function InsurancePage() {
                 </ul>
 
                 <p className="text-2xl font-bold text-primary mb-4">
-                  {plan.price.toLocaleString('fa-IR')}
-                  <span className="text-sm font-normal text-neutral-gray6 mr-1">تومان</span>
+                  {plan.price.toLocaleString("fa-IR")}
+                  <span className="text-sm font-normal text-neutral-gray6 mr-1">
+                    تومان
+                  </span>
                 </p>
 
                 <Button
                   fullWidth
-                  variant={plan.popular ? 'primary' : 'secondary'}
+                  variant={plan.popular ? "primary" : "secondary"}
                   onClick={() => handleSelect(plan)}
                 >
                   انتخاب و خرید
@@ -130,19 +141,32 @@ export default function InsurancePage() {
         </div>
 
         <p className="mt-8 text-center text-sm text-neutral-gray6">
-          قبلاً بیمه خریده‌اید؟{' '}
-          <Link href="/profile?tab=tickets" className="text-primary font-medium">مشاهده بلیط‌های من</Link>
+          قبلاً بیمه خریده‌اید؟{" "}
+          <Link
+            href="/profile?tab=tickets"
+            className="text-primary font-medium"
+          >
+            مشاهده بلیط‌های من
+          </Link>
         </p>
       </div>
 
       {isDesktop ? (
-        <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="تأیید انتخاب بیمه">
+        <Modal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          title="تأیید انتخاب بیمه"
+        >
           {selectedPlan && (
             <PlanConfirmContent plan={selectedPlan} onConfirm={confirmPlan} />
           )}
         </Modal>
       ) : (
-        <BottomSheet open={modalOpen} onClose={() => setModalOpen(false)} title="تأیید انتخاب بیمه">
+        <BottomSheet
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          title="تأیید انتخاب بیمه"
+        >
           {selectedPlan && (
             <PlanConfirmContent plan={selectedPlan} onConfirm={confirmPlan} />
           )}
@@ -152,17 +176,25 @@ export default function InsurancePage() {
   );
 }
 
-function PlanConfirmContent({ plan, onConfirm }: { plan: InsurancePlan; onConfirm: () => void }) {
+function PlanConfirmContent({
+  plan,
+  onConfirm,
+}: {
+  plan: InsurancePlan;
+  onConfirm: () => void;
+}) {
   return (
     <>
       <div className="bg-primary-tint1 rounded-xl p-4 mb-4">
         <p className="font-bold text-neutral-gray8">{plan.title}</p>
         <p className="text-sm text-neutral-gray6 mt-1">پوشش {plan.coverage}</p>
         <p className="text-lg font-bold text-primary mt-2">
-          {plan.price.toLocaleString('fa-IR')} تومان
+          {plan.price.toLocaleString("fa-IR")} تومان
         </p>
       </div>
-      <Button fullWidth onClick={onConfirm}>ادامه و ثبت اطلاعات</Button>
+      <Button fullWidth onClick={onConfirm}>
+        ادامه و ثبت اطلاعات
+      </Button>
     </>
   );
 }

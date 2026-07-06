@@ -75,7 +75,9 @@ export default function TransportResultCard({
             <p className="text-[10px] text-muted-foreground">تومان</p>
             <div className="flex items-center gap-1 justify-end lg:justify-center mt-2 text-muted-foreground">
               <Users className="w-3.5 h-3.5" />
-              <span className="text-[11px]">{trip.availableSeats} صندلی</span>
+              <span className="text-[11px]">
+                {trip.availableSeats.toLocaleString("fa-IR")} صندلی
+              </span>
             </div>
           </div>
           <Button onClick={() => onSelect(trip._id)} className="shrink-0">
