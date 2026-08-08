@@ -1,10 +1,27 @@
+import type { Metadata } from 'next';
 import PageLayout from '@/components/layout/PageLayout';
 import Hero from '@/components/layout/Hero';
 import ContentSection from '@/components/shared/ContentSection';
+import { constructMetadata } from '@/lib/seo/metadata';
+import { getBreadcrumbSchema } from '@/lib/seo/structured-data';
+import StructuredData from '@/components/seo/StructuredData';
+
+export const metadata: Metadata = constructMetadata({
+  title: 'قوانین و مقررات | شرایط استفاده از بیلیتیکو',
+  description: 'قوانین و مقررات خرید و رزرو آنلاین بلیط هواپیما، قطار و اتوبوس، شرایط استرداد، حقوق مسافران و حریم خصوصی در بیلیتیکو.',
+  path: '/terms',
+  keywords: ['قوانین بیلیتیکو', 'مقررات خرید بلیط', 'شرایط استرداد', 'حریم خصوصی بیلیتیکو'],
+});
 
 export default function TermsPage() {
+  const breadcrumbs = getBreadcrumbSchema([
+    { name: 'صفحه اصلی', item: '/' },
+    { name: 'قوانین و مقررات', item: '/terms' },
+  ]);
+
   return (
     <PageLayout>
+      <StructuredData data={breadcrumbs} />
       <Hero title="قوانین و مقررات" height="h-[200px]" />
 
       <div className="container mx-auto px-4 py-12 max-w-[1224px]">

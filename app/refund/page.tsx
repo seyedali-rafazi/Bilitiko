@@ -1,10 +1,27 @@
+import type { Metadata } from 'next';
 import PageLayout from '@/components/layout/PageLayout';
 import Hero from '@/components/layout/Hero';
 import ContentSection from '@/components/shared/ContentSection';
+import { constructMetadata } from '@/lib/seo/metadata';
+import { getBreadcrumbSchema } from '@/lib/seo/structured-data';
+import StructuredData from '@/components/seo/StructuredData';
+
+export const metadata: Metadata = constructMetadata({
+  title: 'استرداد بلیط هواپیما و قطار | راهنمای لغو آنلاین بلیط بیلیتیکو',
+  description: 'راهنمای کامل و شرایط استرداد آنلاین بلیط هواپیما، قطار و اتوبوس در بیلیتیکو. بازگشت سریع وجه و لغو آنلاین ۲۴ ساعته.',
+  path: '/refund',
+  keywords: ['استرداد بلیط', 'کنسل کردن بلیط هواپیما', 'لغو آنلاین بلیط', 'جریمه کنسل بلیط'],
+});
 
 export default function RefundPage() {
+  const breadcrumbs = getBreadcrumbSchema([
+    { name: 'صفحه اصلی', item: '/' },
+    { name: 'استرداد بلیط', item: '/refund' },
+  ]);
+
   return (
     <PageLayout>
+      <StructuredData data={breadcrumbs} />
       <Hero title="استرداد بلیط" subtitle="راهنمای کامل استرداد بلیط هواپیما" height="h-[240px]" />
 
       <div className="container mx-auto px-4 py-12 max-w-[1224px]">
@@ -35,7 +52,10 @@ export default function RefundPage() {
         <ContentSection title="تماس با پشتیبانی">
           <p>
             برای استرداد فوری یا سوالات بیشتر با پشتیبانی ۲۴ ساعته بیلیتیکو تماس
-            بگیرید: 021-4045
+            بگیرید:{' '}
+            <a href="tel:0214045" className="text-primary-blue font-bold hover:underline">
+              021-4045
+            </a>
           </p>
         </ContentSection>
       </div>

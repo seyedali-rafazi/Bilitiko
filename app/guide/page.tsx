@@ -1,6 +1,17 @@
+import type { Metadata } from 'next';
 import PageLayout from '@/components/layout/PageLayout';
 import Hero from '@/components/layout/Hero';
 import ContentSection from '@/components/shared/ContentSection';
+import { constructMetadata } from '@/lib/seo/metadata';
+import { getBreadcrumbSchema } from '@/lib/seo/structured-data';
+import StructuredData from '@/components/seo/StructuredData';
+
+export const metadata: Metadata = constructMetadata({
+  title: 'راهنمای خرید آنلاین بلیط | آموزش گام‌به‌گام رزرو در بیلیتیکو',
+  description: 'آموزش کامل رزرو آنلاین بلیط هواپیما، قطار و اتوبوس در بیلیتیکو. راهنمای مراحل انتخاب پرواز، ثبت اطلاعات مسافران و پرداخت بانکی.',
+  path: '/guide',
+  keywords: ['راهنمای خرید بلیط', 'چگونه بلیط بخریم', 'آموزش رزرو پرواز', 'راهنمای بیلیتیکو'],
+});
 
 const steps = [
   { step: 1, title: 'جستجوی پرواز', desc: 'مبدا، مقصد، تاریخ و تعداد مسافران را وارد کنید.' },
@@ -11,8 +22,14 @@ const steps = [
 ];
 
 export default function GuidePage() {
+  const breadcrumbs = getBreadcrumbSchema([
+    { name: 'صفحه اصلی', item: '/' },
+    { name: 'راهنمای خرید', item: '/guide' },
+  ]);
+
   return (
     <PageLayout>
+      <StructuredData data={breadcrumbs} />
       <Hero title="راهنمای خرید بلیط" subtitle="گام به گام تا دریافت بلیط" height="h-[240px]" />
 
       <div className="container mx-auto px-4 py-12 max-w-[1224px]">

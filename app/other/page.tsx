@@ -1,8 +1,19 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { FaHotel, FaCar, FaTrain, FaShip, FaUmbrellaBeach, FaQuestionCircle } from 'react-icons/fa';
 import PageLayout from '@/components/layout/PageLayout';
 import Hero from '@/components/layout/Hero';
 import Card from '@/components/ui/Card';
+import { constructMetadata } from '@/lib/seo/metadata';
+import { getBreadcrumbSchema } from '@/lib/seo/structured-data';
+import StructuredData from '@/components/seo/StructuredData';
+
+export const metadata: Metadata = constructMetadata({
+  title: 'سایر خدمات سفر | هتل، تور، اجاره خودرو و خدمات فرودگاهی',
+  description: 'مجموعه کامل خدمات گردشگری بیلیتیکو شامل رزرو هتل، تورهای مسافرتی داخلی و بین‌المللی، اجاره خودرو و خدمات ویژه مسافران.',
+  path: '/other',
+  keywords: ['رزرو هتل', 'تور مسافرتی', 'اجاره خودرو', 'خدمات سفر', 'بیلیتیکو'],
+});
 
 const services = [
   { title: 'هتل', desc: 'رزرو هتل در سراسر جهان', icon: FaHotel, href: '/other', color: 'text-blue-600' },
@@ -14,8 +25,14 @@ const services = [
 ];
 
 export default function OtherPage() {
+  const breadcrumbs = getBreadcrumbSchema([
+    { name: 'صفحه اصلی', item: '/' },
+    { name: 'سایر خدمات', item: '/other' },
+  ]);
+
   return (
     <PageLayout>
+      <StructuredData data={breadcrumbs} />
       <Hero title="سایر خدمات" subtitle="خدمات متنوع سفر با بیلیتیکو" height="h-[240px]" />
 
       <div className="container mx-auto px-4 py-12 max-w-[1224px]">
@@ -24,7 +41,7 @@ export default function OtherPage() {
             <Link key={service.title} href={service.href}>
               <Card hover padding="lg" className="h-full">
                 <service.icon className={`text-4xl ${service.color} mb-4`} />
-                <h3 className="text-xl font-bold text-neutral-gray8 mb-2">{service.title}</h3>
+                <h2 className="text-xl font-bold text-neutral-gray8 mb-2">{service.title}</h2>
                 <p className="text-neutral-gray6">{service.desc}</p>
               </Card>
             </Link>

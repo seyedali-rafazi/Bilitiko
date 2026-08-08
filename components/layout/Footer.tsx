@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { FaPlane, FaApple, FaGooglePlay, FaInstagram, FaTelegram, FaTwitter, FaLinkedin } from 'react-icons/fa';
 import { FOOTER_LINKS } from '@/lib/constants';
+import Logo from '../shared/Logo';
 
 const SOCIAL_LINKS = [
   { icon: FaTelegram, href: 'https://t.me', label: 'تلگرام' },
@@ -16,10 +17,7 @@ export default function Footer() {
         <div className="hidden lg:grid grid-cols-3 gap-12 mb-12">
           <div className="text-right">
             <div className="flex items-center gap-3 mb-4 justify-start">
-              <div className="bg-gradient-to-br from-primary-blue to-primary-shade1 p-2 rounded-lg">
-                <FaPlane className="text-white text-xl -rotate-45" />
-              </div>
-              <span className="text-2xl font-bold text-primary-blue">بیلیتیکو</span>
+              <Logo />
             </div>
             <p className="text-base text-neutral-gray7 mb-4 leading-relaxed">
               تلفن پشتیبانی:{' '}
