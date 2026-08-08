@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { FaPlane } from 'react-icons/fa';
+import BrandMark from '@/components/shared/BrandMark';
 
 const SPLASH_KEY = 'bilito-splash-shown';
 const MIN_DISPLAY_MS = 2400;
@@ -49,13 +49,22 @@ export default function AppSplash() {
     >
       <div className="splash-bg absolute inset-0" />
       <div className="splash-grid absolute inset-0 opacity-30" />
+      <div className="splash-aurora absolute inset-0" />
 
       <div className="relative z-10 flex flex-col items-center px-6">
         <div className="splash-logo-wrap mb-8">
           <div className="splash-orbit splash-orbit-1" />
           <div className="splash-orbit splash-orbit-2" />
-          <div className="bg-gradient-to-br from-primary-blue to-primary-shade1 p-5 rounded-2xl shadow-2xl shadow-primary-blue/30">
-            <FaPlane className="text-white text-4xl -rotate-45 splash-plane-icon" />
+          <div className="splash-orbit-plane" aria-hidden>
+            <svg viewBox="0 0 24 24" width="18" height="18">
+              <path
+                fill="white"
+                d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"
+              />
+            </svg>
+          </div>
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-black/25 splash-mark-pulse">
+            <BrandMark size={88} />
           </div>
         </div>
 
@@ -68,7 +77,7 @@ export default function AppSplash() {
             style={{ width: `${progress}%` }}
           />
         </div>
-        <p className="text-white/50 text-xs">{progress}%</p>
+        <p className="text-white/50 text-xs tabular-nums">{progress}%</p>
       </div>
     </div>
   );
