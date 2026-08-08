@@ -63,7 +63,7 @@ export function generateTicketHTML(data: TicketData): string {
     }
     
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Vazirmatn FD', 'Vazirmatn', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: #f5f5f5;
       padding: 20px;
       direction: rtl;

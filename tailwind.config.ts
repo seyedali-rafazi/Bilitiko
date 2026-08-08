@@ -17,6 +17,10 @@ const config: Config = {
   		}
   	},
   	extend: {
+  		fontFamily: {
+  			sans: ['"Vazirmatn FD"', '"Vazirmatn"', 'Segoe UI', 'Tahoma', 'sans-serif'],
+  			vazir: ['"Vazirmatn FD"', '"Vazirmatn"', 'sans-serif'],
+  		},
   		colors: {
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
